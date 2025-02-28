@@ -1,6 +1,6 @@
 namespace PuzzleSolver.Core.Primitives;
 
-public class Brick
+public record Brick
 {
     public Point[] Points;
 }

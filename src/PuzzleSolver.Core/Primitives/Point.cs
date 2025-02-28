@@ -1,7 +1,7 @@
 ﻿namespace PuzzleSolver.Core.Primitives;
 
-public class Point
+public record Point(int x, int y)
 {
-    public int X;
-    public int Y;
+    public int X = x;
+    public int Y = y;
 }

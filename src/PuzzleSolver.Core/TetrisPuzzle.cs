@@ -1,9 +1,26 @@
+using PuzzleSolver.Core.Primitives;
+
 namespace PuzzleSolver.Core;
 
 public class TetrisPuzzle
 {
-    public Brick BrickLadder = new Brick()
+    // **
+    //  **
+    public static Brick BrickLadder = new ()
     {
+        Points =
+        [
+            new Point(0, 0),
+            new Point(1, 0),
+            new Point(1, 1),
+            new Point(2, 1),
+        ]
+    };
 
+    // TODO добавить другие фигурки.
+
+    public List<Brick> Bricks = new ()
+    {
+        BrickLadder,
     };
 }
