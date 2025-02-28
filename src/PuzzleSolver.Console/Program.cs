@@ -6,6 +6,7 @@ internal class Program
 {
     static void Main(string[] args)
     {
+        // TEST PR
         Console.WriteLine("Вывод всех фигурок");
 
         var tetrisPuzzle = new TetrisPuzzle();
