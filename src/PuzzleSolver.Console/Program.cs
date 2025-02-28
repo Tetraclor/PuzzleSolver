@@ -19,6 +19,21 @@ internal class Program
 
     static void PrintBrick(Brick brick)
     {
-        // TODO сделать отображение
+        for(var y = 0; y < 5; y++)
+        {
+            for(var x = 0; x < 5; x++)
+            {
+                if (brick.Points.Any(v => v.X == x && v.y == y))
+                {
+                    Console.Write('#');
+                }
+                else
+                {
+                    Console.Write(' ');
+                }
+            }
+
+            Console.WriteLine();
+        }
     }
 }
