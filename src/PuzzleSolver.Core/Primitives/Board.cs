@@ -90,15 +90,12 @@ public class Board
         if (other is null)
             return false;
 
-        if (Size.X != other.Size.X || Size.Y != other.Size.Y)
-            return false;
-
         if (Bricks.Count != other.Bricks.Count)
             return false;
 
-        //foreach(var brick in Bricks)
+        //foreach (var brick in Bricks)
         //{
-        //    if (other.Bricks.Contains(brick, brick) is false)
+        //    if (other.Bricks.Contains(brick) is false)
         //        return false;
         //}
 

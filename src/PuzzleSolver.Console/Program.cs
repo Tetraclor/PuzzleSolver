@@ -37,7 +37,7 @@ internal class Program
     {
         var pool = new List<Brick>();
 
-        var size = new Point(4, 4);
+        var size = new Point(5, 5);
         var sourceBoard = new Board(size);
 
         var permutations = TetrisPuzzle
@@ -67,16 +67,14 @@ internal class Program
 
         void Req(Board board, int pointIndex)
         {
-            if (boardVariants.Contains((board, pointIndex)))
-            {
-                return;
-            }
-
-            boardVariants.Add((board, pointIndex));
-
             if (pointIndex == allPoints.Length)
             {
                 iterations++;
+                if (iterations % 100 == 0)
+                {
+                    Console.WriteLine(iterations);
+                    Console.WriteLine(boardVariants.Count);
+                }
                 if (board.IsFilled())
                 {
                     if (!solved.Contains(board))
@@ -90,6 +88,18 @@ internal class Program
             }
 
             var currentPoint = allPoints[pointIndex];
+
+            if (board[currentPoint] is not null)
+            {
+                return;
+            }
+
+            //if (boardVariants.Contains((board, pointIndex)))
+            //{
+            //    return;
+            //}
+
+            //boardVariants.Add((board, pointIndex));
 
             foreach (var permut in permutations)
             {

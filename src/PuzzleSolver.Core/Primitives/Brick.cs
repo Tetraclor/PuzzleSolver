@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace PuzzleSolver.Core.Primitives;
 
-public class Brick
+public class Brick : IEquatable<Brick>
 {
     public Point[] Points;
 
@@ -15,26 +15,32 @@ public class Brick
     }
     public override bool Equals(object obj)
     {
-        if (obj == null || GetType() != obj.GetType())
-            return false;
+        return Equals(obj as Brick); // Приводим к Brick и используем метод IEquatable
+    }
 
-        Brick other = (Brick)obj;
+    public bool Equals(Brick other)
+    {
+        if (other == null) return false;
 
-        if (Points == null && other.Points == null)
-            return true;
+        // Сравниваем ссылки
+        if (ReferenceEquals(this, other)) return true;
 
+        // Проверяем длину массивов
         if (Points == null || other.Points == null)
-            return false;
+            return Points == other.Points;
 
         if (Points.Length != other.Points.Length)
             return false;
 
-        var pointsSet = new HashSet<Point>(Points);
-        var otherPointsSet = new HashSet<Point>(other.Points);
+        // Создаем множество для быстрого сравнения
+        // Поэлементное сравнение массивов
+        for (int i = 0; i < Points.Length; i++)
+        {
+            if (other.Points.Contains(Points[i]) is false)
+                return false;
+        }
 
-        var result = pointsSet.SetEquals(otherPointsSet);
-
-        return result;
+        return true;
     }
 
     public override int GetHashCode()
