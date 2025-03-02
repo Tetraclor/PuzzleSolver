@@ -10,11 +10,11 @@ internal class Program
         var board = new Board(new Point(7, 6));
         var pool = new List<Brick>() { TetrisPuzzle.BrickRoof };
 
-        var tetrisSolver2 = new TetrisPuzzleSolver2();
+        var tetrisSolver5 = new TetrisPuzzleSolver5();
 
         var solvers = new List<ITetrisPuzzleSolver>() 
         {
-            tetrisSolver2,
+            tetrisSolver5,
           //  new TetrisPuzzleSolver(),
         };
 
@@ -31,7 +31,7 @@ internal class Program
 
                 foreach (var solve in result)
                 {
-                    PrintBoard(solve);
+                    Console.WriteLine(solve);
                 }
             });
 
@@ -56,52 +56,39 @@ internal class Program
         Console.WriteLine($"Времени затрачено на решение: {stopwatch.Elapsed}");
     }
 
-    static void PrintBoard(Board board)
+    void Check() 
     {
-        var emptyChar = ' ';
-        var horizontalBorderChar = '-';
-        var verticalBorderChar = '|';
-        var cornerChar = '+';
+        var permutations = TetrisPuzzle
+            .Permutations(TetrisPuzzle.BrickRoof)
+            .ToArray();
 
-        var exists = new Dictionary<Brick, char>();
-        var currentChar = 'a';
 
-        for (var y = -1; y <= board.Size.Y; y++)
+        foreach (var permut in permutations)
         {
-            for (var x = -1; x <= board.Size.X; x++)
-            {
-                if ((y == -1 || y == board.Size.Y) && (x == -1 || x == board.Size.X))
-                {
-                    // Углы
-                    Console.Write(cornerChar);
-                }
-                else if (y == -1 || y == board.Size.Y)
-                {
-                    // Горизонтальные границы
-                    Console.Write(horizontalBorderChar);
-                }
-                else if (x == -1 || x == board.Size.X)
-                {
-                    // Вертикальные границы
-                    Console.Write(verticalBorderChar);
-                }
-                else if (board.Field[y, x] is not null)
-                {
-                    var brick = board.Field[y, x];
-                    if (!exists.ContainsKey(brick))
-                    {
-                        exists[brick] = ++currentChar;
-                    }
-                    Console.Write(exists[brick]);
+            var copy = permut.Copy();
 
-                }
-                else
-                {
-                    Console.Write(emptyChar);
-                }
-            }
+            TetrisPuzzle.Shift(copy, new Point(0, 0));
 
-            Console.WriteLine();
+            var board1 = new Board(new Point(5, 5));
+
+            board1.TryPlace(copy);
+
+            Console.WriteLine(board1);
         }
+
+        var list = new List<Brick>();
+
+        foreach (var permut in permutations)
+        {
+            if (list.Contains(permut))
+            {
+                var index = list.IndexOf(permut);
+
+                var copy = list[index];
+                continue;
+            }
+            list.Add(permut);
+        }
+        //   return;
     }
 }

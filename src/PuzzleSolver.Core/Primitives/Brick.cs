@@ -56,19 +56,19 @@ public class Brick : IEquatable<Brick>
         return true;
     }
 
-    public override int GetHashCode()
-    {
-        int pointsHashCode = 0;
-        if (Points != null)
-        {
-            foreach (var point in Points
-                .Select(v => v.GetHashCode())
-                .OrderBy(v => v))
-            {
-                pointsHashCode = HashCode.Combine(pointsHashCode, point);
-            }
-        }
+    //public override int GetHashCode()
+    //{
+    //    int pointsHashCode = 0;
+    //    if (Points != null)
+    //    {
+    //        foreach (var point in Points
+    //            .Select(v => v.GetHashCode())
+    //            .OrderBy(v => v))
+    //        {
+    //            pointsHashCode = HashCode.Combine(pointsHashCode, point);
+    //        }
+    //    }
 
-        return pointsHashCode;
-    }
+    //    return pointsHashCode;
+    //}
 }

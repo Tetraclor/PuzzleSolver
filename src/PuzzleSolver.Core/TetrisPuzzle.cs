@@ -76,15 +76,17 @@ public class TetrisPuzzle
         for(var i = 0; i < brick.Points.Length; i++)
         {
             var point = brick.Points[i];
-            if (point.Equals(centr))
-            {
-                continue;
-            }
+
             var radius = Length(centr, point);
 
+            if (radius == 0)
+            {
+                continue; // Пропустить точку, совпадающую с центром
+            }
+
             var angle = angleDegree * Math.PI / 180;
-            var currentAgnle = Math.Acos((point.X - centr.X) / radius);
-            var resultAngle = angle + currentAgnle;
+            var currentAngle = Math.Atan2(point.Y - centr.Y, point.X - centr.X);
+            var resultAngle = angle + currentAngle;
 
             var x = centr.X + radius * Math.Cos(resultAngle);
             var y = centr.Y + radius * Math.Sin(resultAngle);
@@ -122,25 +124,26 @@ public class TetrisPuzzle
         foreach(var point in brick.Points)
         {
             var delta = firstPoint - point;
+
             yield return Shift(brick.Copy(), delta);
 
             var rotated = Rotate(brick.Copy(), point, 90);
 
-            yield return Shift(rotated, delta);
+            yield return Shift(rotated.Copy(), delta);
 
-            rotated = Rotate(brick.Copy(), point, 180);
+            rotated = Rotate(rotated.Copy(), point, 90);
 
-            yield return Shift(rotated, delta);
+            yield return Shift(rotated.Copy(), delta);
 
-            rotated = Rotate(brick.Copy(), point, 270);
+            rotated = Rotate(rotated.Copy(), point, 90);
 
-            yield return Shift(rotated, delta);
+            yield return Shift(rotated.Copy(), delta);
         }
     }
 
     public static Point GetMinPoint(Brick brick)
     {
-        var based = new Point(0, 0);
+        var based = new Point(int.MaxValue, int.MaxValue);
 
         foreach (var point in brick.Points)
         {
@@ -152,7 +155,7 @@ public class TetrisPuzzle
     }
     public static Point GetMaxPoint(Brick brick)
     {
-        var based = new Point(0, 0);
+        var based = new Point(int.MinValue, int.MinValue);
 
         foreach (var point in brick.Points)
         {
