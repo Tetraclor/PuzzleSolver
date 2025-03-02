@@ -55,17 +55,21 @@ public class Board
         }
     }
 
-    public bool TryPlace(Brick brick)
+    public bool IsPossiblePlace(Brick brick)
     {
-        var isPossiblePlaced = !brick.Points
-            .Any(p => 
+        return !brick.Points
+            .Any(p =>
                 p.X < 0 ||
-                p.X >= Size.X || 
-                p.Y >= Size.Y || 
+                p.X >= Size.X ||
+                p.Y >= Size.Y ||
                 p.Y < 0 ||
                 this[p] is not null);
 
-        if (isPossiblePlaced is false)
+    }
+
+    public bool TryPlace(Brick brick)
+    {
+        if (IsPossiblePlace(brick) is false)
         {
             return false;
         }

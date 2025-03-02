@@ -51,6 +51,7 @@ internal class Program
         var boardVariantsWithoutIndex = new List<Board>();
 
         ulong iterations = 0;
+        ulong steps = 0;
 
         Req(sourceBoard, 0);
 
@@ -63,17 +64,18 @@ internal class Program
 
 
         Console.WriteLine($"Все заполенные варианты: {++iterations}");
-        Console.WriteLine($"Все возможные варианты: {boardVariants.Count}");
+        Console.WriteLine($"Шагов сделано: {steps}");
 
         void Req(Board board, int pointIndex)
         {
+            steps++;
+
             if (pointIndex == allPoints.Length)
             {
                 iterations++;
                 if (iterations % 100 == 0)
                 {
-                    Console.WriteLine(iterations);
-                    Console.WriteLine(boardVariants.Count);
+                    Console.WriteLine(steps);
                 }
                 if (board.IsFilled())
                 {
@@ -104,6 +106,12 @@ internal class Program
             foreach (var permut in permutations)
             {
                 var copyBrick = TetrisPuzzle.Shift(permut.Copy(), currentPoint);
+
+                if (board.IsPossiblePlace(copyBrick) is false)
+                {
+                    continue;
+                }
+
                 var copyBoard = board.Copy();
                 var isPlaced = copyBoard.TryPlace(copyBrick);
 
