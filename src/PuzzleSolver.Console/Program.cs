@@ -10,9 +10,11 @@ internal class Program
         var board = new Board(new Point(7, 6));
         var pool = new List<Brick>() { TetrisPuzzle.BrickRoof };
 
+        var tetrisSolver2 = new TetrisPuzzleSolver2();
+
         var solvers = new List<ITetrisPuzzleSolver>() 
         {
-            new TetrisPuzzleSolver2(),
+            tetrisSolver2,
           //  new TetrisPuzzleSolver(),
         };
 
@@ -32,7 +34,14 @@ internal class Program
                     PrintBoard(solve);
                 }
             });
+
+
         }
+
+        //foreach (var solve in tetrisSolver2.All)
+        //{
+        //    PrintBoard(solve);
+        //}
     }
 
 

@@ -1,10 +1,11 @@
 ﻿using System.Drawing;
+using System.Text;
 
 namespace PuzzleSolver.Core.Primitives;
 
 public class Board
 {
-    public readonly Point Size;
+    public Point Size;
     public Brick[,] Field;
     public int FilledCount = 0;
     public List<Brick> Bricks = [];
@@ -21,10 +22,15 @@ public class Board
         Field = new Brick[size.Y,size.X];
     }
 
+    private Board()
+    {
+    }
+
     public Board Copy()
     {
-        var newBoard = new Board(Size)
+        var newBoard = new Board()
         {
+            Size = Size,
             Field = (Brick[,]) Field.Clone(),
             Bricks = [..Bricks],
             FilledCount = FilledCount,
@@ -132,24 +138,101 @@ public class Board
         return true;
     }
 
+    int? cachedHashCode = null;
+
     public override int GetHashCode()
     {
-        unchecked
-        {
-            int hash = 17;
-            hash = hash * 23 + Size.GetHashCode();
+        return PrintBoardForHashCode(this).GetHashCode();
+    }
 
-            foreach (var point in GetAllPoints())
+    static string PrintBoardForHashCode(Board board)
+    {
+        var stringBuilder = new StringBuilder();
+
+        var exists = new Dictionary<Brick, char>();
+        var currentChar = 'a';
+
+        for (var y = 0; y < board.Size.Y; y++)
+        {
+            for (var x = 0; x < board.Size.X; x++)
             {
-                hash = hash * 23 + (this[point]?.GetHashCode() ?? 0);
+                if (board.Field[y, x] is not null)
+                {
+                    var brick = board.Field[y, x];
+                    if (!exists.TryGetValue(brick, out char value))
+                    {
+                        exists[brick] = ++currentChar;
+                    }
+                    stringBuilder.Append(value);
+
+                }
+                else
+                {
+                    stringBuilder.Append(' ');
+                }
             }
 
-            //foreach (var brick in Bricks)
-            //{
-            //    hash = hash * 23 + brick.GetHashCode();
-            //}
-
-            return hash;
+            stringBuilder.AppendLine();
         }
+
+        return stringBuilder.ToString();
     }
+
+    static string PrintBoard(Board board)
+    {
+        var stringBuilder = new StringBuilder();
+        var emptyChar = ' ';
+        var horizontalBorderChar = '-';
+        var verticalBorderChar = '|';
+        var cornerChar = '+';
+
+        var exists = new Dictionary<Brick, char>();
+        var currentChar = 'a';
+
+        for (var y = -1; y <= board.Size.Y; y++)
+        {
+            for (var x = -1; x <= board.Size.X; x++)
+            {
+                if ((y == -1 || y == board.Size.Y) && (x == -1 || x == board.Size.X))
+                {
+                    // Углы
+                    stringBuilder.Append(cornerChar);
+                }
+                else if (y == -1 || y == board.Size.Y)
+                {
+                    // Горизонтальные границы
+                    stringBuilder.Append(horizontalBorderChar);
+                }
+                else if (x == -1 || x == board.Size.X)
+                {
+                    // Вертикальные границы
+                    stringBuilder.Append(verticalBorderChar);
+                }
+                else if (board.Field[y, x] is not null)
+                {
+                    var brick = board.Field[y, x];
+                    if (!exists.ContainsKey(brick))
+                    {
+                        exists[brick] = ++currentChar;
+                    }
+                    stringBuilder.Append(exists[brick]);
+
+                }
+                else
+                {
+                    stringBuilder.Append(emptyChar);
+                }
+            }
+
+            stringBuilder.AppendLine();
+        }
+
+        return stringBuilder.ToString();
+    }
+
+    public override string ToString()
+    {
+        return PrintBoard(this);
+    }
+
 }

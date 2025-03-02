@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace PuzzleSolver.Core.Primitives;
 
 public class Brick : IEquatable<Brick>
@@ -56,17 +58,17 @@ public class Brick : IEquatable<Brick>
 
     public override int GetHashCode()
     {
-        unchecked
+        int pointsHashCode = 0;
+        if (Points != null)
         {
-            int hash = 17;
-            if (Points != null)
+            foreach (var point in Points
+                .Select(v => v.GetHashCode())
+                .OrderBy(v => v))
             {
-                foreach (var point in Points)
-                {
-                    hash = hash * 23 + point.GetHashCode();
-                }
+                pointsHashCode = HashCode.Combine(pointsHashCode, point);
             }
-            return hash;
         }
+
+        return pointsHashCode;
     }
 }
