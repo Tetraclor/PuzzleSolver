@@ -1,5 +1,4 @@
 ﻿using PuzzleSolver.Core.Primitives;
-using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 
 namespace PuzzleSolver.Core;
@@ -8,122 +7,37 @@ internal class Program
 {
     static void Main(string[] args)
     {
+        var solver = new TetrisPuzzleSolver();
 
+        if (TetrisPuzzle.CheckSolver(solver) is false)
+        {
+            Console.WriteLine("Решатель неправильно работает.");
+        }
+
+        var board = new Board(new Point(5, 5));
+        var pool = new List<Brick>() { TetrisPuzzle.BrickRoof };
+
+        Time(() =>
+        {
+            var result = solver.Solve(board, pool).ToList();
+
+            foreach (var solve in result)
+            {
+                PrintBoard(solve);
+            }
+        });
+    }
+
+
+    static void Time(Action action)
+    {
         var stopwatch = Stopwatch.StartNew();
 
-        Solve();
+        action();
 
         stopwatch.Stop();
 
         Console.WriteLine($"Времени затрачено на решение: {stopwatch.Elapsed}");
-
-        //var permutations = TetrisPuzzle
-        //    .Permutations(TetrisPuzzle.BrickRoof)
-        //    .Distinct();
-
-        //foreach (var variant in permutations)
-        //{
-        //    var norm = TetrisPuzzle.Shift(variant, new Point(2, 2));
-
-        //    var board = new Board(new Point(8, 8));
-
-        //    board.TryPlace(norm);
-
-        //    PrintBoard(board);
-        //}
-    }
-
-    static void Solve()
-    {
-        var pool = new List<Brick>();
-
-        var size = new Point(5, 5);
-        var sourceBoard = new Board(size);
-
-        var permutations = TetrisPuzzle
-            .Permutations(TetrisPuzzle.BrickRoof)
-            .ToArray();
-        
-        var allPoints = sourceBoard.GetAllPoints().ToArray();
-        var solved = new List<Board>();
-
-        var boardVariants = new List<(Board, int)>();
-        var boardVariantsWithoutIndex = new List<Board>();
-
-        ulong iterations = 0;
-        ulong steps = 0;
-
-        Req(sourceBoard, 0);
-
-        //foreach(var bo in boardVariants)
-        //{
-        //    PrintBoard(bo.Item1);
-        //}
-
-        var solvedHashSet = solved.Distinct().ToList();
-
-
-        Console.WriteLine($"Все заполенные варианты: {++iterations}");
-        Console.WriteLine($"Шагов сделано: {steps}");
-
-        void Req(Board board, int pointIndex)
-        {
-            steps++;
-
-            if (pointIndex == allPoints.Length)
-            {
-                iterations++;
-                if (iterations % 100 == 0)
-                {
-                    Console.WriteLine(steps);
-                }
-                if (board.IsFilled())
-                {
-                    if (!solved.Contains(board))
-                    {
-                        Console.WriteLine("Новое решение найдено:");
-                        PrintBoard(board);
-                        solved.Add(board);
-                    }
-                }
-                return;
-            }
-
-            var currentPoint = allPoints[pointIndex];
-
-            if (board[currentPoint] is not null)
-            {
-                return;
-            }
-
-            //if (boardVariants.Contains((board, pointIndex)))
-            //{
-            //    return;
-            //}
-
-            //boardVariants.Add((board, pointIndex));
-
-            foreach (var permut in permutations)
-            {
-                var copyBrick = TetrisPuzzle.Shift(permut.Copy(), currentPoint);
-
-                if (board.IsPossiblePlace(copyBrick) is false)
-                {
-                    continue;
-                }
-
-                var copyBoard = board.Copy();
-                var isPlaced = copyBoard.TryPlace(copyBrick);
-
-                if (isPlaced)
-                {
-                    Req(copyBoard, pointIndex + 1);
-                }   
-            }
-
-            // Вариант, ничего не вставлять. 
-            Req(board.Copy(), pointIndex + 1);
-        }
     }
 
     static void PrintBoard(Board board)

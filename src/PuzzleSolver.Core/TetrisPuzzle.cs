@@ -142,4 +142,18 @@ public class TetrisPuzzle
 
         return based;
     }
+
+    public static bool CheckSolver(ITetrisPuzzleSolver tetrisPuzzleSolver)
+    {
+        var board = new Board(new Point(4, 4));
+        var pool = new List<Brick>() { BrickRoof };
+        var result = tetrisPuzzleSolver.Solve(board, pool);
+
+        if (result.Count() != 2)
+        {
+            return false;
+        }
+
+        return true;
+    }
 }

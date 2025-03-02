@@ -27,9 +27,10 @@ public class Board
 
     public Board Copy()
     {
-        var newBoard = new Board(Size);
-
-        newBoard.Bricks = Bricks.ToList();
+        var newBoard = new Board(Size)
+        {
+            Bricks = [..Bricks]
+        };
 
         for (var y = 0; y < Field.Length; y++)
         {
@@ -74,14 +75,19 @@ public class Board
             return false;
         }
 
+        UnsafePlace(brick);
+
+        return true;
+    }
+
+    public void UnsafePlace(Brick brick)
+    {
         Bricks.Add(brick);
 
         foreach (var point in brick.Points)
         {
             this[point] = brick;
         }
-
-        return true;
     }
 
     public override bool Equals(object obj)
