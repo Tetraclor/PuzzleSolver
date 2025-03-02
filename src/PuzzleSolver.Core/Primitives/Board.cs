@@ -8,7 +8,7 @@ public class Board
     public Point Size;
     public Brick[,] Field;
     public int FilledCount = 0;
-    public List<Brick> Bricks = [];
+  //  public List<Brick> Bricks = [];
 
     public Brick this[Point point]
     {
@@ -28,11 +28,14 @@ public class Board
 
     public Board Copy()
     {
+        var filed = (Brick[,])Field.Clone();
+      //  var bricks = Bricks.ToList();
+
         var newBoard = new Board()
         {
             Size = Size,
-            Field = (Brick[,]) Field.Clone(),
-            Bricks = [..Bricks],
+            Field = filed,
+     //       Bricks = bricks,
             FilledCount = FilledCount,
         };
 
@@ -98,7 +101,7 @@ public class Board
     {
         FilledCount += brick.Points.Length;
 
-        Bricks.Add(brick);
+    //    Bricks.Add(brick);
 
         foreach (var point in brick.Points)
         {
@@ -115,15 +118,6 @@ public class Board
     {
         if (other is null)
             return false;
-
-        if (Bricks.Count != other.Bricks.Count)
-            return false;
-
-        //foreach (var brick in Bricks)
-        //{
-        //    if (other.Bricks.Contains(brick) is false)
-        //        return false;
-        //}
 
         for (var y = 0; y < Size.Y; y++)
         {

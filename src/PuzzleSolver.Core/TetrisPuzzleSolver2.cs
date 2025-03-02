@@ -50,6 +50,7 @@ public class TetrisPuzzleSolver2 : ITetrisPuzzleSolver
                     {
                         Console.WriteLine("Новое решение найдено.");
                         solved.Add(board);
+                        Console.WriteLine(board);
                     }
                 }
                 return;

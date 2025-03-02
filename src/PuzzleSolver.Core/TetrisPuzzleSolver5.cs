@@ -88,7 +88,6 @@ public class TetrisPuzzleSolver5 : ITetrisPuzzleSolver
             }
         }
 
-
         var allPoints = board.GetAllPoints().ToArray();
         var solved = new List<Board>();
         var hashed = new HashSet<Board>();
@@ -121,6 +120,7 @@ public class TetrisPuzzleSolver5 : ITetrisPuzzleSolver
                     {
                         Console.WriteLine("Новое решение найдено.");
                         Console.WriteLine(board.ToString());
+
                         solved.Add(board);
                     }
                 }
@@ -136,11 +136,7 @@ public class TetrisPuzzleSolver5 : ITetrisPuzzleSolver
             }
 
             foreach (var permut in boardPermutations[currentPoint.Y, currentPoint.X])
-            //  foreach (var permut in permutations)
             {
-                //var copyPermut = permut.Copy();
-                // var shiftBrick = TetrisPuzzle.Shift(copyPermut, currentPoint);
-
                 if (board.IsPossiblePlace(permut) is false)
                 {
                     continue;
@@ -154,7 +150,7 @@ public class TetrisPuzzleSolver5 : ITetrisPuzzleSolver
             }
 
             // Вариант, ничего не вставлять. 
-            Req(board.Copy(), pointIndex + 1);
+           // Req(board.Copy(), pointIndex + 1);
         }
     }
 }

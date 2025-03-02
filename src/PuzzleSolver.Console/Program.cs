@@ -7,7 +7,7 @@ internal class Program
 {
     static void Main(string[] args)
     {
-        var board = new Board(new Point(7, 6));
+        var board = new Board(new Point(8, 8));
         var pool = new List<Brick>() { TetrisPuzzle.BrickRoof };
 
         var tetrisSolver5 = new TetrisPuzzleSolver5();
