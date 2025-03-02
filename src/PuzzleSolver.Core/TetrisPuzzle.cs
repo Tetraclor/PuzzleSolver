@@ -39,7 +39,9 @@ public class TetrisPuzzle
             new Point(1, 0),
             new Point(2, 0),
             new Point(1, 1),
-        ]
+        ],
+        MinBorder = new Point(0, 0),
+        MaxBorder = new Point(2, 1),
     };
 
     // TODO добавить другие фигурки.
@@ -57,6 +59,9 @@ public class TetrisPuzzle
         {
             brick.Points[i] += shift;
         }
+
+        brick.MinBorder += shift;
+        brick.MaxBorder += shift;
 
         return brick;
     }
@@ -89,6 +94,9 @@ public class TetrisPuzzle
 
             brick.Points[i] = new Point((int)x, (int)y);
         }
+
+        brick.MinBorder = GetMinPoint(brick);
+        brick.MaxBorder = GetMaxPoint(brick);
 
         return brick;
     }
@@ -130,7 +138,7 @@ public class TetrisPuzzle
         }
     }
 
-    public static Point GetBasedPoint(Brick brick)
+    public static Point GetMinPoint(Brick brick)
     {
         var based = new Point(0, 0);
 
@@ -138,6 +146,18 @@ public class TetrisPuzzle
         {
             based.X = Math.Min(point.X, based.X);
             based.Y = Math.Min(point.Y, based.Y);
+        }
+
+        return based;
+    }
+    public static Point GetMaxPoint(Brick brick)
+    {
+        var based = new Point(0, 0);
+
+        foreach (var point in brick.Points)
+        {
+            based.X = Math.Max(point.X, based.X);
+            based.Y = Math.Max(point.Y, based.Y);
         }
 
         return based;

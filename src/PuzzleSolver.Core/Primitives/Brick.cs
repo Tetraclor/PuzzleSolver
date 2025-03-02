@@ -1,16 +1,27 @@
-using System.Diagnostics.CodeAnalysis;
-
 namespace PuzzleSolver.Core.Primitives;
 
 public class Brick : IEquatable<Brick>
 {
+    public Point MinBorder;
+    public Point MaxBorder;
     public Point[] Points;
+
+    public Brick(Point[] points)
+    {
+        Points = [.. points];
+    }
+
+    public Brick()
+    {
+    }
 
     public Brick Copy()
     {
         return new Brick
         {
-            Points = [.. Points]
+            Points = [.. Points],
+            MinBorder = MinBorder,
+            MaxBorder = MaxBorder,
         };
     }
     public override bool Equals(object obj)

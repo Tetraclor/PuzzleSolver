@@ -7,25 +7,32 @@ internal class Program
 {
     static void Main(string[] args)
     {
-        var solver = new TetrisPuzzleSolver();
-
-        if (TetrisPuzzle.CheckSolver(solver) is false)
-        {
-            Console.WriteLine("Решатель неправильно работает.");
-        }
-
-        var board = new Board(new Point(5, 5));
+        var board = new Board(new Point(7, 6));
         var pool = new List<Brick>() { TetrisPuzzle.BrickRoof };
 
-        Time(() =>
+        var solvers = new List<ITetrisPuzzleSolver>() 
         {
-            var result = solver.Solve(board, pool).ToList();
+            new TetrisPuzzleSolver2(),
+          //  new TetrisPuzzleSolver(),
+        };
 
-            foreach (var solve in result)
+        foreach(var solver in solvers)
+        {
+            if (TetrisPuzzle.CheckSolver(solver) is false)
             {
-                PrintBoard(solve);
+                Console.WriteLine("Решатель неправильно работает.");
             }
-        });
+
+            Time(() =>
+            {
+                var result = solver.Solve(board, pool).ToList();
+
+                foreach (var solve in result)
+                {
+                    PrintBoard(solve);
+                }
+            });
+        }
     }
 
 
@@ -69,9 +76,9 @@ internal class Program
                     // Вертикальные границы
                     Console.Write(verticalBorderChar);
                 }
-                else if (board.Field[y][x] is not null)
+                else if (board.Field[y, x] is not null)
                 {
-                    var brick = board.Field[y][x];
+                    var brick = board.Field[y, x];
                     if (!exists.ContainsKey(brick))
                     {
                         exists[brick] = ++currentChar;

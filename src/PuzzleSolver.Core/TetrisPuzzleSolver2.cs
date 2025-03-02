@@ -2,8 +2,10 @@
 
 namespace PuzzleSolver.Core;
 
-public class TetrisPuzzleSolver : ITetrisPuzzleSolver
+public class TetrisPuzzleSolver2 : ITetrisPuzzleSolver
 {
+    
+
     public IEnumerable<Board> Solve(Board board, List<Brick> pool)
     {
         var permutations = pool
@@ -40,7 +42,7 @@ public class TetrisPuzzleSolver : ITetrisPuzzleSolver
                 {
                     Console.WriteLine(steps);
                 }
-                if (board.IsFilled())
+                if (board.IsFilled2())
                 {
                     if (!solved.Contains(board))
                     {
@@ -60,22 +62,52 @@ public class TetrisPuzzleSolver : ITetrisPuzzleSolver
 
             foreach (var permut in permutations)
             {
-                var copyBrick = TetrisPuzzle.Shift(permut.Copy(), currentPoint);
+                var copyPermut = permut.Copy();
+                var shiftBrick = TetrisPuzzle.Shift(copyPermut, currentPoint);
 
-                if (board.IsPossiblePlace(copyBrick) is false)
+                if (board.IsPossiblePlace(shiftBrick) is false)
                 {
                     continue;
                 }
 
                 var copyBoard = board.Copy();
 
-                copyBoard.TryPlace(copyBrick);
+                copyBoard.UnsafePlace(shiftBrick);
 
                 Req(copyBoard, pointIndex + 1);
             }
 
             // Вариант, ничего не вставлять. 
             Req(board.Copy(), pointIndex + 1);
+        }
+    }
+
+
+    public void PermutationMask(List<Brick> permutations)
+    {
+        var permutationsMask = new int[10, 10];
+
+        foreach (var permut in permutations)
+        {
+            var copy = permut.Copy();
+            var shift = TetrisPuzzle.Shift(copy, new Point(5, 5));
+
+            foreach (var point in shift.Points)
+            {
+                permutationsMask[point.Y, point.X]++;
+            }
+        }
+
+        // Вывод массива в консоль
+        Console.WriteLine("Массив permutationsMask:");
+        for (int i = 0; i < permutationsMask.GetLength(0); i++)
+        {
+            for (int j = 0; j < permutationsMask.GetLength(1); j++)
+            {
+                // Форматирование вывода: каждое число занимает 3 символа (включая пробелы)
+                Console.Write(permutationsMask[i, j].ToString().PadLeft(3) + " ");
+            }
+            Console.WriteLine(); // Переход на новую строку после каждой строки массива
         }
     }
 }

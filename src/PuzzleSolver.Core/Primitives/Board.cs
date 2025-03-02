@@ -5,37 +5,30 @@ namespace PuzzleSolver.Core.Primitives;
 public class Board
 {
     public readonly Point Size;
-    public readonly Brick[][] Field;
-    public List<Brick> Bricks = new();
+    public Brick[,] Field;
+    public int FilledCount = 0;
+    public List<Brick> Bricks = [];
 
     public Brick this[Point point]
     {
-        get { return Field[point.Y][point.X]; }
-        set { Field[point.Y][point.X] = value; }
+        get { return Field[point.Y,point.X]; }
+        set { Field[point.Y, point.X] = value; }
     }
 
     public Board(Point size)
     {
         Size = size;
-        Field = new Brick[size.Y][];
-
-        for(var y = 0; y < Field.Length; y++)
-        {
-            Field[y] = new Brick[size.X];
-        }
+        Field = new Brick[size.Y,size.X];
     }
 
     public Board Copy()
     {
         var newBoard = new Board(Size)
         {
-            Bricks = [..Bricks]
+            Field = (Brick[,]) Field.Clone(),
+            Bricks = [..Bricks],
+            FilledCount = FilledCount,
         };
-
-        for (var y = 0; y < Field.Length; y++)
-        {
-            newBoard.Field[y] = [..Field[y]];
-        }
 
         return newBoard;
     }
@@ -43,6 +36,11 @@ public class Board
     public bool IsFilled()
     {
         return !GetAllPoints().Any(v => this[v] is null);
+    }
+
+    public bool IsFilled2()
+    {
+        return FilledCount == Size.X * Size.Y;
     }
 
     public IEnumerable<Point> GetAllPoints()
@@ -58,13 +56,23 @@ public class Board
 
     public bool IsPossiblePlace(Brick brick)
     {
-        return !brick.Points
-            .Any(p =>
-                p.X < 0 ||
-                p.X >= Size.X ||
-                p.Y >= Size.Y ||
-                p.Y < 0 ||
-                this[p] is not null);
+        if (brick.MinBorder.X < 0 || 
+            brick.MinBorder.Y < 0 ||
+            brick.MaxBorder.X >= Size.X ||
+            brick.MaxBorder.Y >= Size.Y)
+        {
+            return false;
+        }
+
+        foreach (var p in brick.Points)
+        {
+            if (this[p] is not null)
+            {
+                return false;
+            }
+        }
+
+        return true;
 
     }
 
@@ -82,6 +90,8 @@ public class Board
 
     public void UnsafePlace(Brick brick)
     {
+        FilledCount += brick.Points.Length;
+
         Bricks.Add(brick);
 
         foreach (var point in brick.Points)
