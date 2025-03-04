@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Linq;
 
 namespace PuzzleSolver.Core.Primitives;
 
@@ -26,27 +27,76 @@ public class Brick : IEquatable<Brick>
             MaxBorder = MaxBorder,
         };
     }
+
+    public bool IsSameShape(Brick other)
+    {
+        if (other == null || Points == null || other.Points == null || Points.Length != other.Points.Length)
+            return false;
+
+        // –ù–æ—Ä–º–∞–ª–∏–∑—É–µ–º –æ–±–µ —Ñ–∏–≥—É—Ä—ã –∫ –Ω–∞—á–∞–ª—É –∫–æ–æ—Ä–¥–∏–Ω–∞—Ç (0,0)
+        var normalizedThis = NormalizeBrick(this);
+        var normalizedOther = NormalizeBrick(other);
+
+        // –ü—Ä–æ–≤–µ—Ä—è–µ–º –≤—Å–µ –≤–æ–∑–º–æ–∂–Ω—ã–µ –ø–æ–≤–æ—Ä–æ—Ç—ã
+        for (int angle = 0; angle < 360; angle += 90)
+        {
+            var rotated = TetrisPuzzle.Rotate(normalizedThis.Copy(), new Point(0, 0), angle);
+            var normalizedRotated = NormalizeBrick(rotated);
+
+            if (ArePointsEqual(normalizedRotated.Points, normalizedOther.Points))
+                return true;
+        }
+
+        return false;
+    }
+
+    private static Brick NormalizeBrick(Brick brick)
+    {
+        var minX = brick.Points.Min(p => p.X);
+        var minY = brick.Points.Min(p => p.Y);
+        var shift = new Point(-minX, -minY);
+        
+        return TetrisPuzzle.Shift(brick.Copy(), shift);
+    }
+
+    private static bool ArePointsEqual(Point[] points1, Point[] points2)
+    {
+        if (points1.Length != points2.Length)
+            return false;
+
+        var ordered1 = points1.OrderBy(p => p.X).ThenBy(p => p.Y).ToArray();
+        var ordered2 = points2.OrderBy(p => p.X).ThenBy(p => p.Y).ToArray();
+
+        for (int i = 0; i < ordered1.Length; i++)
+        {
+            if (ordered1[i].X != ordered2[i].X || ordered1[i].Y != ordered2[i].Y)
+                return false;
+        }
+
+        return true;
+    }
+
     public override bool Equals(object obj)
     {
-        return Equals(obj as Brick); // œË‚Ó‰ËÏ Í Brick Ë ËÒÔÓÎ¸ÁÛÂÏ ÏÂÚÓ‰ IEquatable
+        return Equals(obj as Brick); // –ü—Ä–∏–≤–æ–¥–∏–º –∫ Brick –∏ –∏—Å–ø–æ–ª—å–∑—É–µ–º –º–µ—Ç–æ–¥ IEquatable
     }
 
     public bool Equals(Brick other)
     {
         if (other == null) return false;
 
-        // —‡‚ÌË‚‡ÂÏ ÒÒ˚ÎÍË
+        // –°—Ä–∞–≤–Ω–∏–≤–∞–µ–º —Å—Å—ã–ª–∫–∏
         if (ReferenceEquals(this, other)) return true;
 
-        // œÓ‚ÂˇÂÏ ‰ÎËÌÛ Ï‡ÒÒË‚Ó‚
+        // –ü—Ä–æ–≤–µ—Ä—è–µ–º –¥–ª–∏–Ω—É –º–∞—Å—Å–∏–≤–æ–≤
         if (Points == null || other.Points == null)
             return Points == other.Points;
 
         if (Points.Length != other.Points.Length)
             return false;
 
-        // —ÓÁ‰‡ÂÏ ÏÌÓÊÂÒÚ‚Ó ‰Îˇ ·˚ÒÚÓ„Ó Ò‡‚ÌÂÌËˇ
-        // œÓ˝ÎÂÏÂÌÚÌÓÂ Ò‡‚ÌÂÌËÂ Ï‡ÒÒË‚Ó‚
+        // –°–æ–∑–¥–∞–µ–º –º–Ω–æ–∂–µ—Å—Ç–≤–æ –¥–ª—è –±—ã—Å—Ç—Ä–æ–≥–æ —Å—Ä–∞–≤–Ω–µ–Ω–∏—è
+        // –ü–æ—ç–ª–µ–º–µ–Ω—Ç–Ω–æ–µ —Å—Ä–∞–≤–Ω–µ–Ω–∏–µ –º–∞—Å—Å–∏–≤–æ–≤
         for (int i = 0; i < Points.Length; i++)
         {
             if (other.Points.Contains(Points[i]) is false)

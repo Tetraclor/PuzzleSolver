@@ -1,9 +1,11 @@
 ﻿using PuzzleSolver.Core.Primitives;
 
-namespace PuzzleSolver.Core;
+namespace PuzzleSolver.Core.Solvers;
 
-public class TetrisPuzzleSolver4 : ITetrisPuzzleSolver
+public class TetrisPuzzleSolver2 : ITetrisPuzzleSolver
 {
+    public HashSet<Board> AllEnd;
+
     public IEnumerable<Board> Solve(Board board, List<Brick> pool)
     {
         var permutations = pool
@@ -23,10 +25,7 @@ public class TetrisPuzzleSolver4 : ITetrisPuzzleSolver
         ulong iterations = 0;
         ulong steps = 0;
 
-        Parallel.Invoke([
-            () => Req(board, 0),
-            () => Req(board, 1)
-        ]);
+        Req(board, 0);
 
         Console.WriteLine($"Все конечные варианты: {++iterations}");
         Console.WriteLine($"Шагов сделано: {steps}");
@@ -44,13 +43,14 @@ public class TetrisPuzzleSolver4 : ITetrisPuzzleSolver
                 {
                     Console.WriteLine(steps);
                 }
-                if (board.IsFilled2())
+                if (board.IsFilled())
                 {
                     hashed.Add(board);
                     if (!solved.Contains(board))
                     {
                         Console.WriteLine("Новое решение найдено.");
                         solved.Add(board);
+                        Console.WriteLine(board);
                     }
                 }
                 return;
@@ -80,12 +80,8 @@ public class TetrisPuzzleSolver4 : ITetrisPuzzleSolver
                 Req(copyBoard, pointIndex + 1);
             }
 
-            if (pointIndex != 0)
-            {
-                // Вариант, ничего не вставлять. 
-                Req(board.Copy(), pointIndex + 1);
-            }
-
+            // Вариант, ничего не вставлять. 
+            Req(board.Copy(), pointIndex + 1);
         }
     }
 }

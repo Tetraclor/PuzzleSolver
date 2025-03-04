@@ -1,22 +1,21 @@
-﻿using PuzzleSolver.Core.Primitives;
+using PuzzleSolver.Core.Primitives;
 
-namespace PuzzleSolver.Core;
+namespace PuzzleSolver.Core.Solvers;
 
 public class TetrisPuzzleSolver5 : ITetrisPuzzleSolver
 {
-    public HashSet<Board> AllEnd;
-
     public IEnumerable<Board> Solve(Board board, List<Brick> pool)
     {
-        var permutations = pool
+        var pool1 = pool.Distinct();
+
+        var permutations = pool1
             .SelectMany(brick =>
             {
                 return TetrisPuzzle
                     .Permutations(brick)
                     .ToArray();
             })
-            // .Distinct()
-            .ToArray();
+            .ToHashSet();
 
         var boardPermutations = new List<Brick>[board.Size.Y, board.Size.X];
 
@@ -113,7 +112,7 @@ public class TetrisPuzzleSolver5 : ITetrisPuzzleSolver
                 {
                     Console.WriteLine(steps);
                 }
-                if (board.IsFilled2())
+                if (board.IsFilled())
                 {
                     hashed.Add(board);
                     if (!solved.Contains(board))
@@ -148,9 +147,6 @@ public class TetrisPuzzleSolver5 : ITetrisPuzzleSolver
 
                 Req(copyBoard, pointIndex + 1);
             }
-
-            // Вариант, ничего не вставлять. 
-           // Req(board.Copy(), pointIndex + 1);
         }
     }
 }

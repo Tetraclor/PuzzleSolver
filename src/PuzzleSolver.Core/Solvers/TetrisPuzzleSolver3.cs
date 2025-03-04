@@ -1,6 +1,6 @@
 ﻿using PuzzleSolver.Core.Primitives;
 
-namespace PuzzleSolver.Core;
+namespace PuzzleSolver.Core.Solvers;
 
 public class TetrisPuzzleSolver3 : ITetrisPuzzleSolver
 {
@@ -36,7 +36,7 @@ public class TetrisPuzzleSolver3 : ITetrisPuzzleSolver
                 {
                     Console.WriteLine(Interlocked.Read(ref steps));
                 }
-                if (currentBoard.IsFilled2())
+                if (currentBoard.IsFilled())
                 {
                     if (!solved.Contains(currentBoard))
                     {

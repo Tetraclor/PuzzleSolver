@@ -5,48 +5,47 @@ namespace PuzzleSolver.Core;
 
 public class TetrisPuzzle
 {
-    // **
-    //  **
-    public static Brick BrickLadder = new ()
+    /// <summary>
+    /// **
+    ///  **
+    /// </summary>
+    public readonly static Brick BrickLadder = CreateBrickFromString(@"
+**
+ **
+");
+
+    /// <summary>
+    /// ****
+    /// </summary>
+    public readonly static Brick BrickLine = CreateBrickFromString(@"
+****
+");
+
+    /// <summary>
+    ///  *
+    /// ***
+    /// </summary>
+    public readonly static Brick BrickRoof = CreateBrickFromString(@"
+***
+ *
+");
+
+    // TODO   .
+
+    static TetrisPuzzle()
     {
-        Points =
-        [
-            new Point(0, 0),
-            new Point(1, 0),
-            new Point(1, 1),
-            new Point(2, 1),
-        ]
-    };
+        AllBrickTypes.Add(BrickLadder);
+        AllBrickTypes.Add(BrickLine);
+        AllBrickTypes.Add(BrickRoof);
 
-    //
-    // 
-    public static Brick BrickLine = new()
-    {
-        Points =
-        [
-            new Point(0, 0),
-            new Point(1, 0),
-            new Point(2, 0),
-            new Point(3, 0),
-        ]
-    };
+        foreach (var brick in AllBrickTypes)
+        {
+            brick.MinBorder = GetMinPoint(brick);
+            brick.MaxBorder = GetMaxPoint(brick);
+        }
+    }
 
-    public static Brick BrickRoof = new()
-    {
-        Points =
-        [
-            new Point(0, 0),
-            new Point(1, 0),
-            new Point(2, 0),
-            new Point(1, 1),
-        ],
-        MinBorder = new Point(0, 0),
-        MaxBorder = new Point(2, 1),
-    };
-
-    // TODO добавить другие фигурки.
-
-    public readonly List<Brick> Bricks = [];
+    public static List<Brick> AllBrickTypes = [];
 
     public static double Length(Point a, Point b)
     {
@@ -70,7 +69,7 @@ public class TetrisPuzzle
     {
         if (angleDegree % 90 != 0)
         {
-            throw new ArgumentException("Должен быть кратен 90", nameof(angleDegree));
+            throw new ArgumentException("пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ 90", nameof(angleDegree));
         }
 
         for(var i = 0; i < brick.Points.Length; i++)
@@ -81,7 +80,7 @@ public class TetrisPuzzle
 
             if (radius == 0)
             {
-                continue; // Пропустить точку, совпадающую с центром
+                continue; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             }
 
             var angle = angleDegree * Math.PI / 180;
@@ -103,6 +102,36 @@ public class TetrisPuzzle
         return brick;
     }
 
+    public static Brick CreateBrickFromString(string brickString, char brickChar = '*')
+    {
+        var lines = brickString
+            .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+            .Where(line => !string.IsNullOrEmpty(line))
+            .ToArray();
+
+        var points = new List<Point>();
+        var minX = int.MaxValue;
+
+        // РЎРЅР°С‡Р°Р»Р° СЃРѕР±РёСЂР°РµРј РІСЃРµ С‚РѕС‡РєРё РІ РїРѕСЂСЏРґРєРµ СЃР»РµРІР° РЅР°РїСЂР°РІРѕ, СЃРІРµСЂС…Сѓ РІРЅРёР·
+        for (var y = 0; y < lines.Length; y++)
+        {
+            var line = lines[y];
+            for (var x = 0; x < line.Length; x++)
+            {
+                if (line[x] == brickChar)
+                {
+                    points.Add(new Point(x, y));
+                    minX = Math.Min(minX, x);
+                }
+            }
+        }
+
+        var brick = new Brick(points.ToArray());
+        brick.MinBorder = GetMinPoint(brick);
+        brick.MaxBorder = GetMaxPoint(brick);
+
+        return brick;
+    }
 
     public static bool PlacedOneFromPool(Board board, Point point, List<Brick> bricks)
     {
@@ -169,7 +198,7 @@ public class TetrisPuzzle
     public static bool CheckSolver(ITetrisPuzzleSolver tetrisPuzzleSolver)
     {
         var board = new Board(new Point(4, 4));
-        var pool = new List<Brick>() { BrickRoof };
+        var pool = new List<Brick>() { BrickRoof, BrickRoof, BrickRoof, BrickRoof };
         var result = tetrisPuzzleSolver.Solve(board, pool);
 
         if (result.Count() != 2)

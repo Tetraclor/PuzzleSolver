@@ -1,4 +1,5 @@
 ﻿using PuzzleSolver.Core.Primitives;
+using PuzzleSolver.Core.Solvers;
 using System.Diagnostics;
 
 namespace PuzzleSolver.Core;
@@ -7,14 +8,24 @@ internal class Program
 {
     static void Main(string[] args)
     {
-        var board = new Board(new Point(8, 8));
-        var pool = new List<Brick>() { TetrisPuzzle.BrickRoof };
+        var board = new Board(new Point(7, 7));
+
+        var pool = new List<Brick>() { };
+
+        var cellCount = board.Size.X * board.Size.Y;
+
+        for (var i = 0; i < cellCount / TetrisPuzzle.BrickRoof.Points.Length; i++)
+        {
+            pool.Add(TetrisPuzzle.BrickRoof);
+        }
 
         var tetrisSolver5 = new TetrisPuzzleSolver5();
+        var tetrisSolver6 = new TetrisPuzzleSolver6();
 
         var solvers = new List<ITetrisPuzzleSolver>() 
         {
             tetrisSolver5,
+            tetrisSolver6,
           //  new TetrisPuzzleSolver(),
         };
 
@@ -27,6 +38,8 @@ internal class Program
 
             Time(() =>
             {
+                Console.WriteLine($"======= {board.Size.X} X {board.Size.Y} =======");
+
                 var result = solver.Solve(board, pool).ToList();
 
                 foreach (var solve in result)

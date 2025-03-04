@@ -8,7 +8,6 @@ public class Board
     public Point Size;
     public Brick[,] Field;
     public int FilledCount = 0;
-  //  public List<Brick> Bricks = [];
 
     public Brick this[Point point]
     {
@@ -29,13 +28,11 @@ public class Board
     public Board Copy()
     {
         var filed = (Brick[,])Field.Clone();
-      //  var bricks = Bricks.ToList();
 
         var newBoard = new Board()
         {
             Size = Size,
             Field = filed,
-     //       Bricks = bricks,
             FilledCount = FilledCount,
         };
 
@@ -43,11 +40,6 @@ public class Board
     }
 
     public bool IsFilled()
-    {
-        return !GetAllPoints().Any(v => this[v] is null);
-    }
-
-    public bool IsFilled2()
     {
         return FilledCount == Size.X * Size.Y;
     }
@@ -100,8 +92,6 @@ public class Board
     public void UnsafePlace(Brick brick)
     {
         FilledCount += brick.Points.Length;
-
-    //    Bricks.Add(brick);
 
         foreach (var point in brick.Points)
         {

@@ -1,6 +1,6 @@
 ﻿using PuzzleSolver.Core.Primitives;
 
-namespace PuzzleSolver.Core;
+namespace PuzzleSolver.Core.Solvers;
 
 public class TetrisPuzzleSolver : ITetrisPuzzleSolver
 {
