@@ -96,7 +96,7 @@
                                             <div class="board-line">
                                                 @for (int x = 0; x < board.Width; x++)
                                                 {
-                                                    var color = board.Cells[y, x];
+                                                    var color = board.CellsGrid[y, x];
                                                     <span class="board-cell" 
                                                           style="@(color != null ? $"background-color: {color}; border-color: {color};" : "")"></span>
                                                 }
@@ -148,4 +148,150 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-} 
+}
+
+<script>
+    function drawBoard(canvas, board) {
+        const ctx = canvas.getContext('2d');
+        const width = board.Width;
+        const height = board.Height;
+        
+        // Устанавливаем размер canvas в пикселях (для четкости)
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+        
+        // Вычисляем размер ячейки с учетом отступов
+        const padding = 10;
+        const availableWidth = canvas.width - (padding * 2);
+        const availableHeight = canvas.height - (padding * 2);
+        const cellSize = Math.min(
+            Math.floor(availableWidth / width),
+            Math.floor(availableHeight / height)
+        );
+        
+        // Вычисляем отступы для центрирования
+        const offsetX = (canvas.width - (cellSize * width)) / 2;
+        const offsetY = (canvas.height - (cellSize * height)) / 2;
+        
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Рисуем сетку
+        ctx.strokeStyle = '#dee2e6';
+        ctx.lineWidth = 1;
+        for (let y = 0; y <= height; y++) {
+            ctx.beginPath();
+            ctx.moveTo(offsetX, offsetY + y * cellSize);
+            ctx.lineTo(offsetX + width * cellSize, offsetY + y * cellSize);
+            ctx.stroke();
+        }
+        for (let x = 0; x <= width; x++) {
+            ctx.beginPath();
+            ctx.moveTo(offsetX + x * cellSize, offsetY);
+            ctx.lineTo(offsetX + x * cellSize, offsetY + height * cellSize);
+            ctx.stroke();
+        }
+        
+        // Рисуем фигуры
+        for (const cell of board.Cells) {
+            ctx.fillStyle = cell.Color;
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            const px = offsetX + (cell.X * cellSize);
+            const py = offsetY + (cell.Y * cellSize);
+            ctx.fillRect(px, py, cellSize, cellSize);
+            ctx.strokeRect(px, py, cellSize, cellSize);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Отрисовка фигур
+        document.querySelectorAll('.brick-canvas').forEach(canvas => {
+            const shape = canvas.dataset.shape;
+            const color = canvas.dataset.color;
+            drawBrick(canvas, shape, color);
+        });
+
+        // Обработка формы
+        document.getElementById('puzzleForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const data = {
+                Width: parseInt(formData.get('Width')),
+                Height: parseInt(formData.get('Height')),
+                Bricks: []
+            };
+
+            // Собираем данные о фигурах
+            let brickIndex = 0;
+            while (formData.has(`Bricks[${brickIndex}].Type`)) {
+                data.Bricks.push({
+                    Type: formData.get(`Bricks[${brickIndex}].Type`),
+                    DisplayName: formData.get(`Bricks[${brickIndex}].DisplayName`),
+                    Shape: formData.get(`Bricks[${brickIndex}].Shape`),
+                    Count: parseInt(formData.get(`Bricks[${brickIndex}].Count`) || '0')
+                });
+                brickIndex++;
+            }
+
+            const statusDiv = document.getElementById('status');
+            const resultsDiv = document.getElementById('results');
+            
+            try {
+                const response = await fetch('/Puzzle/Solve', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                
+                statusDiv.textContent = result.status;
+                statusDiv.className = `alert ${result.success ? 'alert-success' : 'alert-danger'} mt-3`;
+                statusDiv.style.display = 'block';
+
+                if (result.success && result.results) {
+                    const resultsContainer = document.getElementById('resultsContainer');
+                    resultsContainer.innerHTML = '';
+                    
+                    result.results.forEach((board, index) => {
+                        const col = document.createElement('div');
+                        col.className = 'col-md-4 mb-3';
+                        
+                        const card = document.createElement('div');
+                        card.className = 'card';
+                        
+                        const cardBody = document.createElement('div');
+                        cardBody.className = 'card-body';
+                        
+                        const canvas = document.createElement('canvas');
+                        canvas.className = 'result-canvas';
+                        
+                        cardBody.appendChild(canvas);
+                        card.appendChild(cardBody);
+                        col.appendChild(card);
+                        resultsContainer.appendChild(col);
+                        
+                        drawBoard(canvas, board);
+                    });
+                    
+                    resultsDiv.style.display = 'block';
+                } else {
+                    resultsDiv.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                statusDiv.textContent = 'Произошла ошибка при отправке запроса: ' + error.message;
+                statusDiv.className = 'alert alert-danger mt-3';
+                statusDiv.style.display = 'block';
+                resultsDiv.style.display = 'none';
+            }
+        });
+    });
+</script> 

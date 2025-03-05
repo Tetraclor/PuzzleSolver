@@ -24,7 +24,11 @@ namespace PuzzleSolver.Web.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return View("Index", model);
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+                return Json(new { success = false, status = "Ошибка валидации: " + string.Join(", ", errors) });
             }
 
             try
@@ -60,33 +64,34 @@ namespace PuzzleSolver.Web.Controllers
 
                 if (!bricks.Any())
                 {
-                    model.Status = "Ошибка: Необходимо указать хотя бы одну фигуру";
-                    return View("Index", model);
+                    return Json(new { success = false, status = "Ошибка: Необходимо указать хотя бы одну фигуру" });
                 }
 
                 var bricksCellsCount = bricks.Sum(v => v.Points.Length);
 
                 if (bricksCellsCount != model.Width * model.Height)
                 {
-                    model.Status = $"Ошибка: Недостаток или избыток фигур для поля данного размера. " +
-                        $"Фигурки заполнят {bricksCellsCount} клеток. " +
-                        $"А доска имеет {model.Width} X {model.Height} = {model.Width * model.Height} клеток.";
-                    return View("Index", model);
+                    return Json(new { 
+                        success = false, 
+                        status = $"Ошибка: Недостаток или избыток фигур для поля данного размера. " +
+                            $"Фигурки заполнят {bricksCellsCount} клеток. " +
+                            $"А доска имеет {model.Width} X {model.Height} = {model.Width * model.Height} клеток."
+                    });
                 }
                 
                 var result = _puzzleSolver.Solve(board, bricks).ToList();
 
                 if (result.Count == 0)
                 {
-                    model.Status = "Решений не найдено";
-                    return View("Index", model);
+                    return Json(new { success = false, status = "Решений не найдено" });
                 }
 
                 model.Result = result.Select(b => new BoardResult
                 {
                     Width = b.Size.X,
                     Height = b.Size.Y,
-                    Cells = new string[b.Size.Y, b.Size.X]
+                    Cells = new List<CellInfo>(),
+                    CellsGrid = new string[b.Size.Y, b.Size.X]
                 }).ToList();
 
                 // Заполняем цвета в результатах
@@ -117,20 +122,25 @@ namespace PuzzleSolver.Web.Controllers
                                     "L" => "#ffc107",
                                     _ => "#6c757d"
                                 };
-                                boardResult.Cells[y, x] = color;
+                                
+                                boardResult.Cells.Add(new CellInfo 
+                                { 
+                                    X = x, 
+                                    Y = y, 
+                                    Color = color 
+                                });
+                                boardResult.CellsGrid[y, x] = color;
                             }
                         }
                     }
                 }
 
-                model.Status = "Успешно решено";
+                return Json(new { success = true, status = "Успешно решено", results = model.Result });
             }
             catch (Exception ex)
             {
-                model.Status = $"Ошибка: {ex.Message}";
+                return Json(new { success = false, status = $"Ошибка: {ex.Message}" });
             }
-
-            return View("Index", model);
         }
     }
 } 

@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using PuzzleSolver.Core.Primitives;
+using System.Collections.Generic;
 
 namespace PuzzleSolver.Web.Models
 {
@@ -18,13 +19,6 @@ namespace PuzzleSolver.Web.Models
             "L" => "#ffc107",
             _ => "#6c757d"
         };
-    }
-
-    public class BoardResult
-    {
-        public string[,] Cells { get; set; }
-        public int Width { get; set; }
-        public int Height { get; set; }
     }
 
     public class PuzzleViewModel
