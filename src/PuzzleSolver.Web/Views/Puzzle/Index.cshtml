@@ -12,14 +12,14 @@
             <div class="col-md-6">
                 <div class="form-group mb-3">
                     <label asp-for="Width" class="control-label"></label>
-                    <input asp-for="Width" class="form-control" type="number" min="1" max="20" />
+                    <input name="Width" class="form-control" type="number" min="1" max="20" value="@Model.Width" />
                     <span asp-validation-for="Width" class="text-danger"></span>
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="form-group mb-3">
                     <label asp-for="Height" class="control-label"></label>
-                    <input asp-for="Height" class="form-control" type="number" min="1" max="20" />
+                    <input name="Height" class="form-control" type="number" min="1" max="20" value="@Model.Height" />
                     <span asp-validation-for="Height" class="text-danger"></span>
                 </div>
             </div>
@@ -106,15 +106,19 @@
         border-radius: 4px;
     }
     .brick-canvas {
-        width: 100px;
-        height: 100px;
+        width: 80px;
+        height: 80px;
         margin-bottom: 10px;
         background: #f8f9fa;
         border-radius: 4px;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
     }
     .result-canvas {
-        width: 400px;
-        height: 400px;
+        max-width: 250px;
+        max-height: 250px;
+        width: 100%;
         margin: 10px auto;
         display: block;
         background: #f8f9fa;
@@ -172,9 +176,22 @@
         const width = board.width;
         const height = board.height;
         
-        // Устанавливаем фиксированный размер canvas
-        canvas.width = 400;
-        canvas.height = 400;
+        // Устанавливаем размер canvas в зависимости от размера контейнера
+        const containerWidth = canvas.parentElement.offsetWidth;
+        const maxSize = Math.min(250, containerWidth - 20); // Уменьшим максимальный размер
+        
+        // Вычисляем размеры с учетом пропорций доски
+        let canvasWidth, canvasHeight;
+        if (width > height) {
+            canvasWidth = maxSize;
+            canvasHeight = (maxSize * height) / width;
+        } else {
+            canvasHeight = maxSize;
+            canvasWidth = (maxSize * width) / height;
+        }
+        
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
         
         // Вычисляем размер ячейки
         const padding = 20;
@@ -192,6 +209,28 @@
         // Очищаем canvas
         ctx.fillStyle = '#f8f9fa';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Рисуем внешнюю сетку
+        ctx.strokeStyle = '#dee2e6';
+        ctx.lineWidth = 1;
+        
+        // Рисуем горизонтальные линии
+        for (let y = 0; y <= height; y++) {
+            const py = offsetY + y * cellSize;
+            ctx.beginPath();
+            ctx.moveTo(offsetX, py);
+            ctx.lineTo(offsetX + width * cellSize, py);
+            ctx.stroke();
+        }
+        
+        // Рисуем вертикальные линии
+        for (let x = 0; x <= width; x++) {
+            const px = offsetX + x * cellSize;
+            ctx.beginPath();
+            ctx.moveTo(px, offsetY);
+            ctx.lineTo(px, offsetY + height * cellSize);
+            ctx.stroke();
+        }
         
         // Создаем карту ячеек для быстрого поиска
         const cellMap = {};
@@ -226,7 +265,7 @@
                 // Проверяем все четыре стороны
                 ctx.beginPath();
                 ctx.strokeStyle = '#000';
-                ctx.lineWidth = 3; // Увеличим толщину границы между фигурами
+                ctx.lineWidth = 3;
                 
                 // Верхняя граница
                 if (shouldDrawBorder(cell.x, cell.y, 0, -1)) {
@@ -257,28 +296,6 @@
                 }
             });
         }
-        
-        // Рисуем внешнюю сетку
-        ctx.strokeStyle = '#dee2e6';
-        ctx.lineWidth = 1;
-        
-        // Рисуем горизонтальные линии
-        for (let y = 0; y <= height; y++) {
-            const py = offsetY + y * cellSize;
-            ctx.beginPath();
-            ctx.moveTo(offsetX, py);
-            ctx.lineTo(offsetX + width * cellSize, py);
-            ctx.stroke();
-        }
-        
-        // Рисуем вертикальные линии
-        for (let x = 0; x <= width; x++) {
-            const px = offsetX + x * cellSize;
-            ctx.beginPath();
-            ctx.moveTo(px, offsetY);
-            ctx.lineTo(px, offsetY + height * cellSize);
-            ctx.stroke();
-        }
     }
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -299,6 +316,8 @@
                 Height: parseInt(formData.get('Height')),
                 Bricks: []
             };
+
+            console.log('Sending data:', data); // Добавим отладочный вывод
 
             // Собираем данные о фигурах
             let brickIndex = 0;
@@ -330,7 +349,7 @@
 
                 const result = await response.json();
                 
-                console.log('Server response:', result);
+                console.log('Server response:', result); // Оставим этот отладочный вывод
                 
                 statusDiv.textContent = result.status;
                 statusDiv.className = `alert ${result.success ? 'alert-success' : 'alert-danger'} mt-3`;

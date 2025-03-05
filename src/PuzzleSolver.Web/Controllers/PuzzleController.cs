@@ -20,7 +20,7 @@ namespace PuzzleSolver.Web.Controllers
         }
 
         [HttpPost]
-        public IActionResult Solve(PuzzleViewModel model)
+        public IActionResult Solve([FromBody] PuzzleViewModel model)
         {
             if (!ModelState.IsValid)
             {
