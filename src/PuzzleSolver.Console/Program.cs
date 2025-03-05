@@ -8,7 +8,7 @@ internal class Program
 {
     static void Main(string[] args)
     {
-        var board = new Board(new Point(7, 7));
+        var board = new Board(new Point(4, 4));
 
         var pool = new List<Brick>() { };
 
@@ -19,12 +19,12 @@ internal class Program
             pool.Add(TetrisPuzzle.BrickRoof);
         }
 
-        var tetrisSolver5 = new TetrisPuzzleSolver5();
+        pool = [TetrisPuzzle.BrickRoof, TetrisPuzzle.BrickRoof, TetrisPuzzle.BrickLine, TetrisPuzzle.BrickL];
+
         var tetrisSolver6 = new TetrisPuzzleSolver6();
 
         var solvers = new List<ITetrisPuzzleSolver>() 
         {
-            tetrisSolver5,
             tetrisSolver6,
           //  new TetrisPuzzleSolver(),
         };

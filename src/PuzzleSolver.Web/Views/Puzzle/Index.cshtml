@@ -1,0 +1,151 @@
+@model PuzzleSolver.Web.Models.PuzzleViewModel
+
+@{
+    ViewData["Title"] = "Решение головоломки";
+}
+
+<div class="container mt-4">
+    <h1>@ViewData["Title"]</h1>
+
+    <form asp-action="Solve" method="post" class="mt-4">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label asp-for="Width" class="control-label"></label>
+                    <input asp-for="Width" class="form-control" type="number" min="1" max="20" />
+                    <span asp-validation-for="Width" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label asp-for="Height" class="control-label"></label>
+                    <input asp-for="Height" class="form-control" type="number" min="1" max="20" />
+                    <span asp-validation-for="Height" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Фигуры</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    @for (var i = 0; i < Model.Bricks.Count; i++)
+                    {
+                        <div class="col-md-3 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h6 class="card-title">@Model.Bricks[i].DisplayName</h6>
+                                    <div class="brick-shape mb-3">
+                                        @foreach (var line in Model.Bricks[i].Shape.Split('\n'))
+                                        {
+                                            <div class="brick-line">
+                                                @foreach (var c in line)
+                                                {
+                                                    <span class="brick-cell @(c == '*' ? "filled" : "")" 
+                                                          style="@(c == '*' ? $"background-color: {Model.Bricks[i].GetColor()}; border-color: {Model.Bricks[i].GetColor()};" : "")"></span>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="control-label">Количество</label>
+                                        <input type="number" class="form-control" min="0" max="10" 
+                                               asp-for="@Model.Bricks[i].Count" />
+                                        <input type="hidden" asp-for="@Model.Bricks[i].Type" />
+                                        <input type="hidden" asp-for="@Model.Bricks[i].DisplayName" />
+                                        <input type="hidden" asp-for="@Model.Bricks[i].Shape" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary">Решить</button>
+        </div>
+    </form>
+
+    @if (!string.IsNullOrEmpty(Model.Status))
+    {
+        <div class="alert @(Model.Status.StartsWith("Ошибка") ? "alert-danger" : "alert-success") mt-3">
+            @Model.Status
+        </div>
+    }
+
+    @if (Model.Result != null && Model.Result.Any())
+    {
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Результат</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    @foreach (var board in Model.Result)
+                    {
+                        <div class="col-md-4 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="board-result">
+                                        @for (int y = 0; y < board.Height; y++)
+                                        {
+                                            <div class="board-line">
+                                                @for (int x = 0; x < board.Width; x++)
+                                                {
+                                                    var color = board.Cells[y, x];
+                                                    <span class="board-cell" 
+                                                          style="@(color != null ? $"background-color: {color}; border-color: {color};" : "")"></span>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .brick-shape {
+        display: inline-block;
+        background: #f8f9fa;
+        padding: 10px;
+        border-radius: 4px;
+    }
+    .brick-line, .board-line {
+        display: flex;
+        margin-bottom: 2px;
+    }
+    .brick-line:last-child, .board-line:last-child {
+        margin-bottom: 0;
+    }
+    .brick-cell, .board-cell {
+        width: 20px;
+        height: 20px;
+        border: 1px solid #dee2e6;
+        margin-right: 2px;
+        background: white;
+        position: relative;
+    }
+    .board-cell[style*="background-color"] {
+        border: 2px solid #000;
+    }
+    .board-result {
+        display: inline-block;
+        background: #f8f9fa;
+        padding: 10px;
+        border-radius: 4px;
+    }
+</style>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+} 

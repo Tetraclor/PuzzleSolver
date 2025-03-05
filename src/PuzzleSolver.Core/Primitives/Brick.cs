@@ -5,6 +5,7 @@ namespace PuzzleSolver.Core.Primitives;
 
 public class Brick : IEquatable<Brick>
 {
+    public string Type;
     public Point MinBorder;
     public Point MaxBorder;
     public Point[] Points;
@@ -23,6 +24,7 @@ public class Brick : IEquatable<Brick>
         return new Brick
         {
             Points = [.. Points],
+            Type = Type,
             MinBorder = MinBorder,
             MaxBorder = MaxBorder,
         };
@@ -30,6 +32,9 @@ public class Brick : IEquatable<Brick>
 
     public bool IsSameShape(Brick other)
     {
+        if (Type is not null && other.Type is not null)
+            return Type == other.Type;
+
         if (other == null || Points == null || other.Points == null || Points.Length != other.Points.Length)
             return false;
 

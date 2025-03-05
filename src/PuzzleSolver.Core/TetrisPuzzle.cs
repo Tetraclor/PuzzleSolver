@@ -9,7 +9,7 @@ public class TetrisPuzzle
     /// **
     ///  **
     /// </summary>
-    public readonly static Brick BrickLadder = CreateBrickFromString(@"
+    public readonly static Brick BrickLadder = CreateBrickFromString("Ladder", @"
 **
  **
 ");
@@ -17,7 +17,7 @@ public class TetrisPuzzle
     /// <summary>
     /// ****
     /// </summary>
-    public readonly static Brick BrickLine = CreateBrickFromString(@"
+    public readonly static Brick BrickLine = CreateBrickFromString("Line", @"
 ****
 ");
 
@@ -25,9 +25,18 @@ public class TetrisPuzzle
     ///  *
     /// ***
     /// </summary>
-    public readonly static Brick BrickRoof = CreateBrickFromString(@"
+    public readonly static Brick BrickRoof = CreateBrickFromString("Roof", @"
 ***
  *
+");
+
+    /// <summary>
+    /// *
+    /// ***
+    /// </summary>
+    public readonly static Brick BrickL = CreateBrickFromString("L", @"
+*
+***
 ");
 
     // TODO   .
@@ -102,7 +111,7 @@ public class TetrisPuzzle
         return brick;
     }
 
-    public static Brick CreateBrickFromString(string brickString, char brickChar = '*')
+    public static Brick CreateBrickFromString(string type, string brickString, char brickChar = '*')
     {
         var lines = brickString
             .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
@@ -129,7 +138,7 @@ public class TetrisPuzzle
         var brick = new Brick(points.ToArray());
         brick.MinBorder = GetMinPoint(brick);
         brick.MaxBorder = GetMaxPoint(brick);
-
+        brick.Type = type;
         return brick;
     }
 
