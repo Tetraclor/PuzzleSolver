@@ -90,8 +90,7 @@ namespace PuzzleSolver.Web.Controllers
                 {
                     Width = b.Size.X,
                     Height = b.Size.Y,
-                    Cells = new List<CellInfo>(),
-                    CellsGrid = new string[b.Size.Y, b.Size.X]
+                    Cells = new List<CellInfo>()
                 }).ToList();
 
                 // Заполняем цвета в результатах
@@ -99,21 +98,54 @@ namespace PuzzleSolver.Web.Controllers
                 {
                     var boardResult = model.Result[i];
                     var currentBoard = result[i];
-                    var typeIndices = new Dictionary<string, int>();
+                    var brickId = 0;
+                    var processedCells = new HashSet<string>();
 
+                    // Функция для рекурсивного заполнения ячеек одной фигуры
+                    void FillBrickCells(Point point, Brick brick, int currentBrickId, string color)
+                    {
+                        var key = $"{point.X},{point.Y}";
+                        if (processedCells.Contains(key)) return;
+                        if (currentBoard[point] != brick) return;
+
+                        processedCells.Add(key);
+                        boardResult.Cells.Add(new CellInfo 
+                        { 
+                            X = point.X, 
+                            Y = point.Y, 
+                            Color = color,
+                            BrickId = currentBrickId
+                        });
+
+                        // Проверяем соседние ячейки
+                        var neighbors = new[]
+                        {
+                            new Point(point.X + 1, point.Y),
+                            new Point(point.X - 1, point.Y),
+                            new Point(point.X, point.Y + 1),
+                            new Point(point.X, point.Y - 1)
+                        };
+
+                        foreach (var neighbor in neighbors)
+                        {
+                            if (neighbor.X >= 0 && neighbor.X < currentBoard.Size.X &&
+                                neighbor.Y >= 0 && neighbor.Y < currentBoard.Size.Y)
+                            {
+                                FillBrickCells(neighbor, brick, currentBrickId, color);
+                            }
+                        }
+                    }
+
+                    // Проходим по всем ячейкам доски
                     for (int y = 0; y < currentBoard.Size.Y; y++)
                     {
                         for (int x = 0; x < currentBoard.Size.X; x++)
                         {
                             var point = new Point(x, y);
                             var brick = currentBoard[point];
-                            if (brick != null)
+                            if (brick != null && !processedCells.Contains($"{x},{y}"))
                             {
-                                if (!typeIndices.ContainsKey(brick.Type))
-                                    typeIndices[brick.Type] = 0;
-                                var index = typeIndices[brick.Type]++;
-                                var total = brickTypeCounts[brick.Type];
-
+                                brickId++;
                                 var color = brick.Type switch
                                 {
                                     "Ladder" => "#0d6efd",
@@ -123,13 +155,7 @@ namespace PuzzleSolver.Web.Controllers
                                     _ => "#6c757d"
                                 };
                                 
-                                boardResult.Cells.Add(new CellInfo 
-                                { 
-                                    X = x, 
-                                    Y = y, 
-                                    Color = color 
-                                });
-                                boardResult.CellsGrid[y, x] = color;
+                                FillBrickCells(point, brick, brickId, color);
                             }
                         }
                     }

@@ -7,7 +7,7 @@
 <div class="container mt-4">
     <h1>@ViewData["Title"]</h1>
 
-    <form asp-action="Solve" method="post" class="mt-4">
+    <form id="puzzleForm" class="mt-4">
         <div class="row">
             <div class="col-md-6">
                 <div class="form-group mb-3">
@@ -37,25 +37,17 @@
                             <div class="card h-100">
                                 <div class="card-body">
                                     <h6 class="card-title">@Model.Bricks[i].DisplayName</h6>
-                                    <div class="brick-shape mb-3">
-                                        @foreach (var line in Model.Bricks[i].Shape.Split('\n'))
-                                        {
-                                            <div class="brick-line">
-                                                @foreach (var c in line)
-                                                {
-                                                    <span class="brick-cell @(c == '*' ? "filled" : "")" 
-                                                          style="@(c == '*' ? $"background-color: {Model.Bricks[i].GetColor()}; border-color: {Model.Bricks[i].GetColor()};" : "")"></span>
-                                                }
-                                            </div>
-                                        }
-                                    </div>
+                                    <canvas class="brick-canvas" 
+                                           data-shape="@Model.Bricks[i].Shape" 
+                                           data-color="@Model.Bricks[i].GetColor()">
+                                    </canvas>
                                     <div class="form-group">
                                         <label class="control-label">Количество</label>
                                         <input type="number" class="form-control" min="0" max="10" 
-                                               asp-for="@Model.Bricks[i].Count" />
-                                        <input type="hidden" asp-for="@Model.Bricks[i].Type" />
-                                        <input type="hidden" asp-for="@Model.Bricks[i].DisplayName" />
-                                        <input type="hidden" asp-for="@Model.Bricks[i].Shape" />
+                                               name="Bricks[@i].Count" value="@Model.Bricks[i].Count" />
+                                        <input type="hidden" name="Bricks[@i].Type" value="@Model.Bricks[i].Type" />
+                                        <input type="hidden" name="Bricks[@i].DisplayName" value="@Model.Bricks[i].DisplayName" />
+                                        <input type="hidden" name="Bricks[@i].Shape" value="@Model.Bricks[i].Shape" />
                                     </div>
                                 </div>
                             </div>
@@ -70,47 +62,16 @@
         </div>
     </form>
 
-    @if (!string.IsNullOrEmpty(Model.Status))
-    {
-        <div class="alert @(Model.Status.StartsWith("Ошибка") ? "alert-danger" : "alert-success") mt-3">
-            @Model.Status
-        </div>
-    }
+    <div id="status" class="alert mt-3" style="display: none;"></div>
 
-    @if (Model.Result != null && Model.Result.Any())
-    {
-        <div class="card mt-3">
-            <div class="card-header">
-                <h5 class="card-title mb-0">Результат</h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    @foreach (var board in Model.Result)
-                    {
-                        <div class="col-md-4 mb-3">
-                            <div class="card">
-                                <div class="card-body">
-                                    <div class="board-result">
-                                        @for (int y = 0; y < board.Height; y++)
-                                        {
-                                            <div class="board-line">
-                                                @for (int x = 0; x < board.Width; x++)
-                                                {
-                                                    var color = board.CellsGrid[y, x];
-                                                    <span class="board-cell" 
-                                                          style="@(color != null ? $"background-color: {color}; border-color: {color};" : "")"></span>
-                                                }
-                                            </div>
-                                        }
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    }
-                </div>
-            </div>
+    <div id="results" class="card mt-3" style="display: none;">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Результат</h5>
         </div>
-    }
+        <div class="card-body">
+            <div class="row" id="resultsContainer"></div>
+        </div>
+    </div>
 </div>
 
 <style>
@@ -144,6 +105,21 @@
         padding: 10px;
         border-radius: 4px;
     }
+    .brick-canvas {
+        width: 100px;
+        height: 100px;
+        margin-bottom: 10px;
+        background: #f8f9fa;
+        border-radius: 4px;
+    }
+    .result-canvas {
+        width: 400px;
+        height: 400px;
+        margin: 10px auto;
+        display: block;
+        background: #f8f9fa;
+        border-radius: 4px;
+    }
 </style>
 
 @section Scripts {
@@ -151,10 +127,11 @@
 }
 
 <script>
-    function drawBoard(canvas, board) {
+    function drawBrick(canvas, shape, color) {
         const ctx = canvas.getContext('2d');
-        const width = board.Width;
-        const height = board.Height;
+        const lines = shape.split('\n');
+        const maxWidth = Math.max(...lines.map(line => line.length));
+        const maxHeight = lines.length;
         
         // Устанавливаем размер canvas в пикселях (для четкости)
         canvas.width = canvas.offsetWidth;
@@ -165,41 +142,142 @@
         const availableWidth = canvas.width - (padding * 2);
         const availableHeight = canvas.height - (padding * 2);
         const cellSize = Math.min(
+            Math.floor(availableWidth / maxWidth),
+            Math.floor(availableHeight / maxHeight)
+        );
+        
+        // Вычисляем отступы для центрирования
+        const offsetX = (canvas.width - (cellSize * maxWidth)) / 2;
+        const offsetY = (canvas.height - (cellSize * maxHeight)) / 2;
+        
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        for (let y = 0; y < maxHeight; y++) {
+            for (let x = 0; x < maxWidth; x++) {
+                if (lines[y][x] === '*') {
+                    ctx.fillStyle = color;
+                    ctx.strokeStyle = '#000';
+                    ctx.lineWidth = 1;
+                    const px = offsetX + (x * cellSize);
+                    const py = offsetY + (y * cellSize);
+                    ctx.fillRect(px, py, cellSize, cellSize);
+                    ctx.strokeRect(px, py, cellSize, cellSize);
+                }
+            }
+        }
+    }
+
+    function drawBoard(canvas, board) {
+        const ctx = canvas.getContext('2d');
+        const width = board.width;
+        const height = board.height;
+        
+        // Устанавливаем фиксированный размер canvas
+        canvas.width = 400;
+        canvas.height = 400;
+        
+        // Вычисляем размер ячейки
+        const padding = 20;
+        const availableWidth = canvas.width - (padding * 2);
+        const availableHeight = canvas.height - (padding * 2);
+        const cellSize = Math.min(
             Math.floor(availableWidth / width),
             Math.floor(availableHeight / height)
         );
         
         // Вычисляем отступы для центрирования
-        const offsetX = (canvas.width - (cellSize * width)) / 2;
-        const offsetY = (canvas.height - (cellSize * height)) / 2;
+        const offsetX = Math.floor((canvas.width - (cellSize * width)) / 2);
+        const offsetY = Math.floor((canvas.height - (cellSize * height)) / 2);
         
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // Очищаем canvas
+        ctx.fillStyle = '#f8f9fa';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        // Рисуем сетку
-        ctx.strokeStyle = '#dee2e6';
-        ctx.lineWidth = 1;
-        for (let y = 0; y <= height; y++) {
-            ctx.beginPath();
-            ctx.moveTo(offsetX, offsetY + y * cellSize);
-            ctx.lineTo(offsetX + width * cellSize, offsetY + y * cellSize);
-            ctx.stroke();
+        // Создаем карту ячеек для быстрого поиска
+        const cellMap = {};
+        if (Array.isArray(board.cells)) {
+            board.cells.forEach(cell => {
+                cellMap[`${cell.x},${cell.y}`] = cell;
+            });
         }
-        for (let x = 0; x <= width; x++) {
-            ctx.beginPath();
-            ctx.moveTo(offsetX + x * cellSize, offsetY);
-            ctx.lineTo(offsetX + x * cellSize, offsetY + height * cellSize);
-            ctx.stroke();
+        
+        // Функция проверки границы
+        function shouldDrawBorder(x, y, dx, dy) {
+            const cell = cellMap[`${x},${y}`];
+            const neighbor = cellMap[`${x + dx},${y + dy}`];
+            return !neighbor || cell.brickId !== neighbor.brickId;
         }
         
         // Рисуем фигуры
-        for (const cell of board.Cells) {
-            ctx.fillStyle = cell.Color;
-            ctx.strokeStyle = '#000';
-            ctx.lineWidth = 2;
-            const px = offsetX + (cell.X * cellSize);
-            const py = offsetY + (cell.Y * cellSize);
-            ctx.fillRect(px, py, cellSize, cellSize);
-            ctx.strokeRect(px, py, cellSize, cellSize);
+        if (Array.isArray(board.cells)) {
+            // Сначала рисуем заливку
+            board.cells.forEach(cell => {
+                ctx.fillStyle = cell.color;
+                const px = offsetX + (cell.x * cellSize);
+                const py = offsetY + (cell.y * cellSize);
+                ctx.fillRect(px, py, cellSize, cellSize);
+            });
+            
+            // Затем рисуем границы
+            board.cells.forEach(cell => {
+                const px = offsetX + (cell.x * cellSize);
+                const py = offsetY + (cell.y * cellSize);
+                
+                // Проверяем все четыре стороны
+                ctx.beginPath();
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 3; // Увеличим толщину границы между фигурами
+                
+                // Верхняя граница
+                if (shouldDrawBorder(cell.x, cell.y, 0, -1)) {
+                    ctx.moveTo(px, py);
+                    ctx.lineTo(px + cellSize, py);
+                    ctx.stroke();
+                }
+                
+                // Правая граница
+                if (shouldDrawBorder(cell.x, cell.y, 1, 0)) {
+                    ctx.moveTo(px + cellSize, py);
+                    ctx.lineTo(px + cellSize, py + cellSize);
+                    ctx.stroke();
+                }
+                
+                // Нижняя граница
+                if (shouldDrawBorder(cell.x, cell.y, 0, 1)) {
+                    ctx.moveTo(px, py + cellSize);
+                    ctx.lineTo(px + cellSize, py + cellSize);
+                    ctx.stroke();
+                }
+                
+                // Левая граница
+                if (shouldDrawBorder(cell.x, cell.y, -1, 0)) {
+                    ctx.moveTo(px, py);
+                    ctx.lineTo(px, py + cellSize);
+                    ctx.stroke();
+                }
+            });
+        }
+        
+        // Рисуем внешнюю сетку
+        ctx.strokeStyle = '#dee2e6';
+        ctx.lineWidth = 1;
+        
+        // Рисуем горизонтальные линии
+        for (let y = 0; y <= height; y++) {
+            const py = offsetY + y * cellSize;
+            ctx.beginPath();
+            ctx.moveTo(offsetX, py);
+            ctx.lineTo(offsetX + width * cellSize, py);
+            ctx.stroke();
+        }
+        
+        // Рисуем вертикальные линии
+        for (let x = 0; x <= width; x++) {
+            const px = offsetX + x * cellSize;
+            ctx.beginPath();
+            ctx.moveTo(px, offsetY);
+            ctx.lineTo(px, offsetY + height * cellSize);
+            ctx.stroke();
         }
     }
 
@@ -251,6 +329,8 @@
                 }
 
                 const result = await response.json();
+                
+                console.log('Server response:', result);
                 
                 statusDiv.textContent = result.status;
                 statusDiv.className = `alert ${result.success ? 'alert-success' : 'alert-danger'} mt-3`;

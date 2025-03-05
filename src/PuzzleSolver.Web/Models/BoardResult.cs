@@ -7,7 +7,6 @@ namespace PuzzleSolver.Web.Models
         public int Width { get; set; }
         public int Height { get; set; }
         public List<CellInfo> Cells { get; set; } = new List<CellInfo>();
-        public string[,] CellsGrid { get; set; }
     }
 
     public class CellInfo
@@ -15,5 +14,6 @@ namespace PuzzleSolver.Web.Models
         public int X { get; set; }
         public int Y { get; set; }
         public string Color { get; set; }
+        public int BrickId { get; set; }
     }
 } 
