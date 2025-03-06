@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using PuzzleSolver.Core.Primitives;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Mvc;
 
 namespace PuzzleSolver.Web.Models
 {
@@ -42,6 +43,7 @@ namespace PuzzleSolver.Web.Models
         [Display(Name = "Высота поля")]
         public int Height { get; set; } = 4;
 
+        [ModelBinder(BinderType = typeof(ArrayModelBinder<BrickInput>))]
         public List<BrickInput> Bricks { get; set; } = new()
         {
             new BrickInput { Type = "Ladder", DisplayName = "Зигзаг", Shape = "**\n **", Count = 0 },

@@ -7,7 +7,7 @@
 <div class="container mt-4">
     <h1>@ViewData["Title"]</h1>
 
-    <form id="puzzleForm" class="mt-4">
+    <form id="puzzleForm" class="mt-4" method="get">
         <div class="row">
             <div class="col-md-6">
                 <div class="form-group mb-3">
@@ -173,8 +173,8 @@
 
     function drawBoard(canvas, board) {
         const ctx = canvas.getContext('2d');
-        const width = board.width;
-        const height = board.height;
+        const width = board.Width;
+        const height = board.Height;
         
         // Устанавливаем размер canvas в зависимости от размера контейнера
         const containerWidth = canvas.parentElement.offsetWidth;
@@ -234,9 +234,9 @@
         
         // Создаем карту ячеек для быстрого поиска
         const cellMap = {};
-        if (Array.isArray(board.cells)) {
-            board.cells.forEach(cell => {
-                cellMap[`${cell.x},${cell.y}`] = cell;
+        if (Array.isArray(board.Cells)) {
+            board.Cells.forEach(cell => {
+                cellMap[`${cell.X},${cell.Y}`] = cell;
             });
         }
         
@@ -244,23 +244,23 @@
         function shouldDrawBorder(x, y, dx, dy) {
             const cell = cellMap[`${x},${y}`];
             const neighbor = cellMap[`${x + dx},${y + dy}`];
-            return !neighbor || cell.brickId !== neighbor.brickId;
+            return !neighbor || cell.BrickId !== neighbor.BrickId;
         }
         
         // Рисуем фигуры
-        if (Array.isArray(board.cells)) {
+        if (Array.isArray(board.Cells)) {
             // Сначала рисуем заливку
-            board.cells.forEach(cell => {
-                ctx.fillStyle = cell.color;
-                const px = offsetX + (cell.x * cellSize);
-                const py = offsetY + (cell.y * cellSize);
+            board.Cells.forEach(cell => {
+                ctx.fillStyle = cell.Color;
+                const px = offsetX + (cell.X * cellSize);
+                const py = offsetY + (cell.Y * cellSize);
                 ctx.fillRect(px, py, cellSize, cellSize);
             });
             
             // Затем рисуем границы
-            board.cells.forEach(cell => {
-                const px = offsetX + (cell.x * cellSize);
-                const py = offsetY + (cell.y * cellSize);
+            board.Cells.forEach(cell => {
+                const px = offsetX + (cell.X * cellSize);
+                const py = offsetY + (cell.Y * cellSize);
                 
                 // Проверяем все четыре стороны
                 ctx.beginPath();
@@ -268,28 +268,28 @@
                 ctx.lineWidth = 3;
                 
                 // Верхняя граница
-                if (shouldDrawBorder(cell.x, cell.y, 0, -1)) {
+                if (shouldDrawBorder(cell.X, cell.Y, 0, -1)) {
                     ctx.moveTo(px, py);
                     ctx.lineTo(px + cellSize, py);
                     ctx.stroke();
                 }
                 
                 // Правая граница
-                if (shouldDrawBorder(cell.x, cell.y, 1, 0)) {
+                if (shouldDrawBorder(cell.X, cell.Y, 1, 0)) {
                     ctx.moveTo(px + cellSize, py);
                     ctx.lineTo(px + cellSize, py + cellSize);
                     ctx.stroke();
                 }
                 
                 // Нижняя граница
-                if (shouldDrawBorder(cell.x, cell.y, 0, 1)) {
+                if (shouldDrawBorder(cell.X, cell.Y, 0, 1)) {
                     ctx.moveTo(px, py + cellSize);
                     ctx.lineTo(px + cellSize, py + cellSize);
                     ctx.stroke();
                 }
                 
                 // Левая граница
-                if (shouldDrawBorder(cell.x, cell.y, -1, 0)) {
+                if (shouldDrawBorder(cell.X, cell.Y, -1, 0)) {
                     ctx.moveTo(px, py);
                     ctx.lineTo(px, py + cellSize);
                     ctx.stroke();
@@ -306,18 +306,16 @@
             drawBrick(canvas, shape, color);
         });
 
-        // Обработка формы
-        document.getElementById('puzzleForm').addEventListener('submit', async function(e) {
+               // Обработка формы
+    document.getElementById('puzzleForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            
+
             const formData = new FormData(this);
             const data = {
                 Width: parseInt(formData.get('Width')),
                 Height: parseInt(formData.get('Height')),
                 Bricks: []
             };
-
-            console.log('Sending data:', data); // Добавим отладочный вывод
 
             // Собираем данные о фигурах
             let brickIndex = 0;
@@ -333,64 +331,83 @@
 
             const statusDiv = document.getElementById('status');
             const resultsDiv = document.getElementById('results');
-            
-            try {
-                const response = await fetch('/Puzzle/Solve', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(data)
-                });
+            const resultsContainer = document.getElementById('resultsContainer');
 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+            // Очищаем предыдущие результаты
+            resultsContainer.innerHTML = '';
+            statusDiv.style.display = 'none';
+            resultsDiv.style.display = 'none';
 
-                const result = await response.json();
-                
-                console.log('Server response:', result); // Оставим этот отладочный вывод
-                
-                statusDiv.textContent = result.status;
-                statusDiv.className = `alert ${result.success ? 'alert-success' : 'alert-danger'} mt-3`;
-                statusDiv.style.display = 'block';
+            // Создаем EventSource для получения решений
+            const params = new URLSearchParams();
+            params.append('Width', data.Width);
+            params.append('Height', data.Height);
 
-                if (result.success && result.results) {
-                    const resultsContainer = document.getElementById('resultsContainer');
-                    resultsContainer.innerHTML = '';
-                    
-                    result.results.forEach((board, index) => {
+            data.Bricks.forEach((brick, index) => {
+                params.append(`Bricks[${index}].Type`, brick.Type);
+                params.append(`Bricks[${index}].DisplayName`, brick.DisplayName);
+                params.append(`Bricks[${index}].Shape`, brick.Shape);
+                params.append(`Bricks[${index}].Count`, brick.Count);
+            });
+
+            const eventSource = new EventSource(`/Puzzle/SolveStream?${params.toString()}`);
+            let solutionCount = 0;
+
+            eventSource.onmessage = function(event) {
+                const message = JSON.parse(event.data);
+
+                switch (message.type) {
+                    case 'solution':
+                        // Создаем элементы для нового решения
                         const col = document.createElement('div');
                         col.className = 'col-md-4 mb-3';
-                        
+
                         const card = document.createElement('div');
                         card.className = 'card';
-                        
+
                         const cardBody = document.createElement('div');
                         cardBody.className = 'card-body';
-                        
+
+                        const title = document.createElement('h6');
+                        title.className = 'card-title';
+                        title.textContent = `Решение ${++solutionCount}`;
+
                         const canvas = document.createElement('canvas');
                         canvas.className = 'result-canvas';
-                        
+
+                        cardBody.appendChild(title);
                         cardBody.appendChild(canvas);
                         card.appendChild(cardBody);
                         col.appendChild(card);
                         resultsContainer.appendChild(col);
-                        
-                        drawBoard(canvas, board);
-                    });
-                    
-                    resultsDiv.style.display = 'block';
-                } else {
-                    resultsDiv.style.display = 'none';
+
+                        drawBoard(canvas, message.data);
+                        resultsDiv.style.display = 'block';
+                        break;
+
+                    case 'error':
+                        statusDiv.textContent = message.message;
+                        statusDiv.className = 'alert alert-danger mt-3';
+                        statusDiv.style.display = 'block';
+                        eventSource.close();
+                        break;
+
+                    case 'complete':
+                        statusDiv.textContent = message.message;
+                        statusDiv.className = 'alert alert-success mt-3';
+                        statusDiv.style.display = 'block';
+                        eventSource.close();
+                        break;
                 }
-            } catch (error) {
-                console.error('Error:', error);
-                statusDiv.textContent = 'Произошла ошибка при отправке запроса: ' + error.message;
+            };
+
+            eventSource.onerror = function(error) {
+                console.error('EventSource error:', error);
+                statusDiv.textContent = 'Произошла ошибка при получении решений';
                 statusDiv.className = 'alert alert-danger mt-3';
                 statusDiv.style.display = 'block';
-                resultsDiv.style.display = 'none';
-            }
+                eventSource.close();
+            };
         });
     });
 </script> 

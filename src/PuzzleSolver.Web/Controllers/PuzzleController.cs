@@ -3,6 +3,7 @@ using PuzzleSolver.Core;
 using PuzzleSolver.Core.Abstract;
 using PuzzleSolver.Core.Primitives;
 using PuzzleSolver.Web.Models;
+using System.Text.Json;
 
 namespace PuzzleSolver.Web.Controllers
 {
@@ -20,20 +21,21 @@ namespace PuzzleSolver.Web.Controllers
             return View(new PuzzleViewModel());
         }
 
-        [HttpPost]
-        public IActionResult Solve([FromBody] PuzzleViewModel model)
+        [HttpGet]
+        public async Task SolveStream([FromQuery] PuzzleViewModel model)
         {
-            if (!ModelState.IsValid)
-            {
-                var errors = ModelState.Values
-                    .SelectMany(v => v.Errors)
-                    .Select(e => e.ErrorMessage)
-                    .ToList();
-                return Json(new { success = false, status = "Ошибка валидации: " + string.Join(", ", errors) });
-            }
+            Response.Headers.Add("Content-Type", "text/event-stream");
+            Response.Headers.Add("Cache-Control", "no-cache");
+            Response.Headers.Add("Connection", "keep-alive");
 
             try
             {
+                if (model == null)
+                {
+                    await SendError("Ошибка: Неверные входные данные");
+                    return;
+                }
+
                 var board = new Board(new Point(model.Width, model.Height));
                 var bricks = new List<Brick>();
                 var brickTypes = new List<string>();
@@ -69,102 +71,126 @@ namespace PuzzleSolver.Web.Controllers
 
                 if (!bricks.Any())
                 {
-                    return Json(new { success = false, status = "Ошибка: Необходимо указать хотя бы одну фигуру" });
+                    await SendError("Ошибка: Необходимо указать хотя бы одну фигуру");
+                    return;
                 }
 
                 var bricksCellsCount = bricks.Sum(v => v.Points.Length);
 
                 if (bricksCellsCount != model.Width * model.Height)
                 {
-                    return Json(new { 
-                        success = false, 
-                        status = $"Ошибка: Недостаток или избыток фигур для поля данного размера. " +
-                            $"Фигурки заполнят {bricksCellsCount} клеток. " +
-                            $"А доска имеет {model.Width} X {model.Height} = {model.Width * model.Height} клеток."
-                    });
+                    await SendError($"Ошибка: Недостаток или избыток фигур для поля данного размера. " +
+                        $"Фигурки заполнят {bricksCellsCount} клеток. " +
+                        $"А доска имеет {model.Width} X {model.Height} = {model.Width * model.Height} клеток.");
+                    return;
                 }
-                
+
                 var result = _puzzleSolver.Solve(new SolveArguments(board, bricks));
-                var boards = result.Boards.Take(50).ToList();
+                var solutionCount = 0;
 
-                if (boards.Count == 0)
+                foreach (var b in result.Boards)
                 {
-                    return Json(new { success = false, status = "Решений не найдено" });
-                }
+                    if (solutionCount >= 50) break;
 
-                model.Result = boards.Select(b => new BoardResult
-                {
-                    Width = b.Size.X,
-                    Height = b.Size.Y,
-                    Cells = new List<CellInfo>()
-                }).ToList();
-
-                // Заполняем цвета в результатах
-                for (int i = 0; i < boards.Count; i++)
-                {
-                    var boardResult = model.Result[i];
-                    var currentBoard = boards[i];
-                    var brickId = 0;
-                    var processedCells = new HashSet<string>();
-
-                    // Функция для рекурсивного заполнения ячеек одной фигуры
-                    void FillBrickCells(Point point, Brick brick, int currentBrickId, string color)
+                    var boardResult = new BoardResult
                     {
-                        var key = $"{point.X},{point.Y}";
-                        if (processedCells.Contains(key)) return;
-                        if (currentBoard[point] != brick) return;
+                        Width = b.Size.X,
+                        Height = b.Size.Y,
+                        Cells = new List<CellInfo>()
+                    };
 
-                        processedCells.Add(key);
-                        boardResult.Cells.Add(new CellInfo 
-                        { 
-                            X = point.X, 
-                            Y = point.Y, 
-                            Color = color,
-                            BrickId = currentBrickId
-                        });
-
-                        // Проверяем соседние ячейки
-                        var neighbors = new[]
-                        {
-                            new Point(point.X + 1, point.Y),
-                            new Point(point.X - 1, point.Y),
-                            new Point(point.X, point.Y + 1),
-                            new Point(point.X, point.Y - 1)
-                        };
-
-                        foreach (var neighbor in neighbors)
-                        {
-                            if (neighbor.X >= 0 && neighbor.X < currentBoard.Size.X &&
-                                neighbor.Y >= 0 && neighbor.Y < currentBoard.Size.Y)
-                            {
-                                FillBrickCells(neighbor, brick, currentBrickId, color);
-                            }
-                        }
-                    }
+                    var processedCells = new HashSet<string>();
+                    var brickId = 0;
 
                     // Проходим по всем ячейкам доски
-                    for (int y = 0; y < currentBoard.Size.Y; y++)
+                    for (int y = 0; y < b.Size.Y; y++)
                     {
-                        for (int x = 0; x < currentBoard.Size.X; x++)
+                        for (int x = 0; x < b.Size.X; x++)
                         {
                             var point = new Point(x, y);
-                            var brick = currentBoard[point];
+                            var brick = b[point];
                             if (brick != null && !processedCells.Contains($"{x},{y}"))
                             {
                                 brickId++;
                                 var color = BrickColors.GetColor(brick.Type);
-                                FillBrickCells(point, brick, brickId, color);
+                                FillBrickCells(b, point, brick, brickId, color, processedCells, boardResult);
                             }
                         }
                     }
+
+                    await SendSolution(boardResult);
+                    solutionCount++;
                 }
 
-                return Json(new { success = true, status = "Успешно решено", results = model.Result });
+                if (solutionCount == 0)
+                {
+                    await SendError("Решений не найдено");
+                }
+                else
+                {
+                    await SendComplete($"Найдено решений: {solutionCount}");
+                }
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, status = $"Ошибка: {ex.Message}" });
+                await SendError($"Ошибка: {ex.Message}");
             }
+        }
+
+        private void FillBrickCells(Board board, Point point, Brick brick, int brickId, string color, 
+            HashSet<string> processedCells, BoardResult boardResult)
+        {
+            var key = $"{point.X},{point.Y}";
+            if (processedCells.Contains(key)) return;
+            if (board[point] != brick) return;
+
+            processedCells.Add(key);
+            boardResult.Cells.Add(new CellInfo
+            {
+                X = point.X,
+                Y = point.Y,
+                Color = color,
+                BrickId = brickId
+            });
+
+            // Проверяем соседние ячейки
+            var neighbors = new[]
+            {
+                new Point(point.X + 1, point.Y),
+                new Point(point.X - 1, point.Y),
+                new Point(point.X, point.Y + 1),
+                new Point(point.X, point.Y - 1)
+            };
+
+            foreach (var neighbor in neighbors)
+            {
+                if (neighbor.X >= 0 && neighbor.X < board.Size.X &&
+                    neighbor.Y >= 0 && neighbor.Y < board.Size.Y)
+                {
+                    FillBrickCells(board, neighbor, brick, brickId, color, processedCells, boardResult);
+                }
+            }
+        }
+
+        private async Task SendSolution(BoardResult solution)
+        {
+            var json = JsonSerializer.Serialize(new { type = "solution", data = solution });
+            await Response.WriteAsync($"data: {json}\n\n");
+            await Response.Body.FlushAsync();
+        }
+
+        private async Task SendError(string message)
+        {
+            var json = JsonSerializer.Serialize(new { type = "error", message });
+            await Response.WriteAsync($"data: {json}\n\n");
+            await Response.Body.FlushAsync();
+        }
+
+        private async Task SendComplete(string message)
+        {
+            var json = JsonSerializer.Serialize(new { type = "complete", message });
+            await Response.WriteAsync($"data: {json}\n\n");
+            await Response.Body.FlushAsync();
         }
     }
 }
