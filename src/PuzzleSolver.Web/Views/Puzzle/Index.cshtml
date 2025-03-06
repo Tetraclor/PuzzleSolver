@@ -7,69 +7,88 @@
 <div class="container mt-4">
     <h1>@ViewData["Title"]</h1>
 
-    <form id="puzzleForm" class="mt-4" method="get">
-        <div class="row">
-            <div class="col-md-6">
-                <div class="form-group mb-3">
-                    <label asp-for="Width" class="control-label"></label>
-                    <input name="Width" class="form-control" type="number" min="1" max="20" value="@Model.Width" />
-                    <span asp-validation-for="Width" class="text-danger"></span>
+    <div class="row">
+        <!-- Пресеты -->
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Пресеты</h5>
                 </div>
-            </div>
-            <div class="col-md-6">
-                <div class="form-group mb-3">
-                    <label asp-for="Height" class="control-label"></label>
-                    <input name="Height" class="form-control" type="number" min="1" max="20" value="@Model.Height" />
-                    <span asp-validation-for="Height" class="text-danger"></span>
+                <div class="card-body">
+                    <div id="preset-list" class="preset-list">
+                        <!-- Пресеты будут загружены с сервера -->
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="card-title mb-0">Фигуры</h5>
-            </div>
-            <div class="card-body">
+        <!-- Основная форма -->
+        <div class="col-md-9">
+            <form id="puzzleForm" class="mt-4" method="get">
                 <div class="row">
-                    @for (var i = 0; i < Model.Bricks.Count; i++)
-                    {
-                        <div class="col-md-3 mb-3">
-                            <div class="card h-100">
-                                <div class="card-body">
-                                    <h6 class="card-title">@Model.Bricks[i].DisplayName</h6>
-                                    <canvas class="brick-canvas" 
-                                           data-shape="@Model.Bricks[i].Shape" 
-                                           data-color="@Model.Bricks[i].GetColor()">
-                                    </canvas>
-                                    <div class="form-group">
-                                        <label class="control-label">Количество</label>
-                                        <input type="number" class="form-control" min="0" max="100" 
-                                               name="Bricks[@i].Count" value="@Model.Bricks[i].Count" />
-                                        <input type="hidden" name="Bricks[@i].Type" value="@Model.Bricks[i].Type" />
-                                        <input type="hidden" name="Bricks[@i].DisplayName" value="@Model.Bricks[i].DisplayName" />
-                                        <input type="hidden" name="Bricks[@i].Shape" value="@Model.Bricks[i].Shape" />
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label asp-for="Width" class="control-label"></label>
+                            <input name="Width" class="form-control" type="number" min="1" max="20" value="@Model.Width" />
+                            <span asp-validation-for="Width" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label asp-for="Height" class="control-label"></label>
+                            <input name="Height" class="form-control" type="number" min="1" max="20" value="@Model.Height" />
+                            <span asp-validation-for="Height" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Фигуры</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            @for (var i = 0; i < Model.Bricks.Count; i++)
+                            {
+                                <div class="col-md-3 mb-3">
+                                    <div class="card h-100">
+                                        <div class="card-body">
+                                            <h6 class="card-title">@Model.Bricks[i].DisplayName</h6>
+                                            <canvas class="brick-canvas" 
+                                                   data-shape="@Model.Bricks[i].Shape" 
+                                                   data-color="@Model.Bricks[i].GetColor()">
+                                            </canvas>
+                                            <div class="form-group">
+                                                <label class="control-label">Количество</label>
+                                                <input type="number" class="form-control" min="0" max="100" 
+                                                       name="Bricks[@i].Count" value="@Model.Bricks[i].Count" />
+                                                <input type="hidden" name="Bricks[@i].Type" value="@Model.Bricks[i].Type" />
+                                                <input type="hidden" name="Bricks[@i].DisplayName" value="@Model.Bricks[i].DisplayName" />
+                                                <input type="hidden" name="Bricks[@i].Shape" value="@Model.Bricks[i].Shape" />
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            }
                         </div>
-                    }
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">Решить</button>
+                </div>
+            </form>
+
+            <div id="status" class="alert mt-3" style="display: none;"></div>
+
+            <div id="results" class="card mt-3" style="display: none;">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Результат</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row" id="resultsContainer"></div>
                 </div>
             </div>
-        </div>
-
-        <div class="form-group">
-            <button type="submit" class="btn btn-primary">Решить</button>
-        </div>
-    </form>
-
-    <div id="status" class="alert mt-3" style="display: none;"></div>
-
-    <div id="results" class="card mt-3" style="display: none;">
-        <div class="card-header">
-            <h5 class="card-title mb-0">Результат</h5>
-        </div>
-        <div class="card-body">
-            <div class="row" id="resultsContainer"></div>
         </div>
     </div>
 </div>
@@ -298,7 +317,77 @@
         }
     }
 
+    function createPresetCard(preset) {
+        const card = document.createElement('div');
+        card.className = 'card mb-2';
+        
+        const cardBody = document.createElement('div');
+        cardBody.className = 'card-body';
+        
+        const title = document.createElement('h6');
+        title.className = 'card-title';
+        title.textContent = preset.title;
+        
+        const description = document.createElement('p');
+        description.className = 'card-text small';
+        description.textContent = preset.description;
+        
+        const button = document.createElement('button');
+        button.className = 'btn btn-sm btn-outline-primary';
+        button.textContent = 'Применить';
+        button.onclick = () => applyPreset(preset);
+        
+        cardBody.appendChild(title);
+        cardBody.appendChild(description);
+        cardBody.appendChild(button);
+        card.appendChild(cardBody);
+        
+        return card;
+    }
+
+    async function loadPresets() {
+        try {
+            const response = await fetch('/Puzzle/GetPresets');
+            if (!response.ok) {
+                throw new Error('Ошибка загрузки пресетов');
+            }
+            
+            const presets = await response.json();
+            const presetList = document.getElementById('preset-list');
+            presetList.innerHTML = '';
+            
+            presets.forEach(preset => {
+                const card = createPresetCard(preset);
+                presetList.appendChild(card);
+            });
+        } catch (error) {
+            console.error('Ошибка при загрузке пресетов:', error);
+        }
+    }
+
+    function applyPreset(preset) {
+        // Устанавливаем размеры поля
+        document.querySelector('input[name="Width"]').value = preset.width;
+        document.querySelector('input[name="Height"]').value = preset.height;
+
+        // Сбрасываем все количества фигур на 0
+        document.querySelectorAll('input[name$="].Count"]').forEach(input => {
+            input.value = 0;
+        });
+
+        // Устанавливаем количества фигур из пресета
+        document.querySelectorAll('input[name$="].Type"]').forEach(input => {
+            const countInput = input.parentElement.querySelector('input[name$="].Count"]');
+            if (preset.bricks[input.value]) {
+                countInput.value = preset.bricks[input.value];
+            }
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
+        // Загружаем пресеты при загрузке страницы
+        loadPresets();
+
         // Отрисовка фигур
         document.querySelectorAll('.brick-canvas').forEach(canvas => {
             const shape = canvas.dataset.shape;
@@ -306,8 +395,8 @@
             drawBrick(canvas, shape, color);
         });
 
-               // Обработка формы
-    document.getElementById('puzzleForm').addEventListener('submit', async function(e) {
+        // Обработка формы
+        document.getElementById('puzzleForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
             const formData = new FormData(this);

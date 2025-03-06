@@ -192,5 +192,44 @@ namespace PuzzleSolver.Web.Controllers
             await Response.WriteAsync($"data: {json}\n\n");
             await Response.Body.FlushAsync();
         }
+
+        [HttpGet]
+        public IActionResult GetPresets()
+        {
+            var presets = new List<PresetViewModel>
+            {
+                new PresetViewModel
+                {
+                    Title = "4x4 с крышами",
+                    Description = "4 крыши на поле 4x4",
+                    Width = 4,
+                    Height = 4,
+                    Bricks = new Dictionary<string, int>
+                    {
+                        { "Roof", 4 }
+                    }
+                },
+                new PresetViewModel
+                {
+                    Title = "10x15 изначальная головоломка",
+                    Description = "Поле 10x15 с разными фигурами",
+                    Width = 10,
+                    Height = 15,
+                    Bricks = new Dictionary<string, int>
+                    {
+                        { "Ladder", 5 },
+                        { "Line", 5 },
+                        { "Roof", 5 },
+                        { "L", 5 },
+                        { "Square", 5 },
+                        { "Small", 5 },
+                        { "Hook", 5 },
+                        { "Crown", 5 }
+                    }
+                }
+            };
+
+            return Json(presets);
+        }
     }
 }
