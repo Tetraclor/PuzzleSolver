@@ -1,4 +1,5 @@
 using Microsoft.VisualBasic;
+using PuzzleSolver.Core.Abstract;
 using PuzzleSolver.Core.Primitives;
 
 namespace PuzzleSolver.Core;
@@ -208,9 +209,9 @@ public class TetrisPuzzle
     {
         var board = new Board(new Point(4, 4));
         var pool = new List<Brick>() { BrickRoof, BrickRoof, BrickRoof, BrickRoof };
-        var result = tetrisPuzzleSolver.Solve(board, pool);
+        var result = tetrisPuzzleSolver.Solve(new SolveArguments(board, pool));
 
-        if (result.Count() != 2)
+        if (result.Boards.Count() != 2)
         {
             return false;
         }

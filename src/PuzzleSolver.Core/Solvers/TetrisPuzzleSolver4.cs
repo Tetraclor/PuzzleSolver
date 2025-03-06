@@ -1,11 +1,20 @@
-﻿using PuzzleSolver.Core.Primitives;
+﻿using PuzzleSolver.Core.Abstract;
+using PuzzleSolver.Core.Primitives;
+using PuzzleSolver.Core.Permutations;
+using System.Diagnostics;
 
 namespace PuzzleSolver.Core.Solvers;
 
 public class TetrisPuzzleSolver4 : ITetrisPuzzleSolver
 {
-    public IEnumerable<Board> Solve(Board board, List<Brick> pool)
+    public SolveResult Solve(SolveArguments solveArguments)
     {
+        var board = solveArguments.Board;
+        var pool = solveArguments.Pool;
+        
+        var solved = new List<Board>();
+        var steps = 0;
+
         var permutations = pool
             .SelectMany(brick =>
             {
@@ -17,11 +26,9 @@ public class TetrisPuzzleSolver4 : ITetrisPuzzleSolver
             .ToArray();
 
         var allPoints = board.GetAllPoints().ToArray();
-        var solved = new List<Board>();
         var hashed = new HashSet<Board>();
 
         ulong iterations = 0;
-        ulong steps = 0;
 
         Parallel.Invoke([
             () => Req(board, 0),
@@ -31,7 +38,7 @@ public class TetrisPuzzleSolver4 : ITetrisPuzzleSolver
         Console.WriteLine($"Все конечные варианты: {++iterations}");
         Console.WriteLine($"Шагов сделано: {steps}");
 
-        return solved;
+        return new SolveResult(solved, steps);
 
         void Req(Board board, int pointIndex)
         {

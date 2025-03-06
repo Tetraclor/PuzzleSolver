@@ -1,21 +1,27 @@
-﻿using PuzzleSolver.Core.Primitives;
+﻿using PuzzleSolver.Core.Abstract;
+using PuzzleSolver.Core.Primitives;
+using PuzzleSolver.Core.Permutations;
+using System.Diagnostics;
 
 namespace PuzzleSolver.Core.Solvers;
 
 public class TetrisPuzzleSolver3 : ITetrisPuzzleSolver
 {
-    public IEnumerable<Board> Solve(Board board, List<Brick> pool)
+    public SolveResult Solve(SolveArguments solveArguments)
     {
+        var board = solveArguments.Board;
+        var pool = solveArguments.Pool;
+        
+        var solved = new List<Board>();
+        var steps = 0;
+
         var permutations = pool
             .SelectMany(brick => TetrisPuzzle.Permutations(brick).ToArray())
             .Distinct()
             .ToArray();
 
         var allPoints = board.GetAllPoints().ToArray();
-        var solved = new List<Board>(); // Используется для уникальных решений
-
-        ulong iterations = 0;
-        ulong steps = 0;
+        var iterations = 0;
         var parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount };
 
         Req(board, 0);
@@ -23,18 +29,18 @@ public class TetrisPuzzleSolver3 : ITetrisPuzzleSolver
         Console.WriteLine($"Все заполненные варианты: {iterations}");
         Console.WriteLine($"Шагов сделано: {steps}");
 
-        return solved;
+        return new SolveResult(solved, steps);
 
         void Req(Board currentBoard, int pointIndex)
         {
-            Interlocked.Increment(ref steps);
+            steps++;
 
             if (pointIndex == allPoints.Length)
             {
-                Interlocked.Increment(ref iterations);
+                iterations++;
                 if (iterations % 100_000 == 0)
                 {
-                    Console.WriteLine(Interlocked.Read(ref steps));
+                    Console.WriteLine(steps);
                 }
                 if (currentBoard.IsFilled())
                 {

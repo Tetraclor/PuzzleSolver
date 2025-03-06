@@ -1,4 +1,4 @@
-using PuzzleSolver.Core;
+using PuzzleSolver.Core.Abstract;
 using PuzzleSolver.Core.Solvers;
 
 var builder = WebApplication.CreateBuilder(args);

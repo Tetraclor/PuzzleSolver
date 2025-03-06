@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using PuzzleSolver.Core;
+using PuzzleSolver.Core.Abstract;
 using PuzzleSolver.Core.Primitives;
 using PuzzleSolver.Web.Models;
 
@@ -79,14 +80,15 @@ namespace PuzzleSolver.Web.Controllers
                     });
                 }
                 
-                var result = _puzzleSolver.Solve(board, bricks).ToList();
+                var result = _puzzleSolver.Solve(new SolveArguments(board, bricks));
+                var boards = result.Boards.ToList();
 
-                if (result.Count == 0)
+                if (boards.Count == 0)
                 {
                     return Json(new { success = false, status = "Решений не найдено" });
                 }
 
-                model.Result = result.Select(b => new BoardResult
+                model.Result = boards.Select(b => new BoardResult
                 {
                     Width = b.Size.X,
                     Height = b.Size.Y,
@@ -94,10 +96,10 @@ namespace PuzzleSolver.Web.Controllers
                 }).ToList();
 
                 // Заполняем цвета в результатах
-                for (int i = 0; i < result.Count; i++)
+                for (int i = 0; i < boards.Count; i++)
                 {
                     var boardResult = model.Result[i];
-                    var currentBoard = result[i];
+                    var currentBoard = boards[i];
                     var brickId = 0;
                     var processedCells = new HashSet<string>();
 

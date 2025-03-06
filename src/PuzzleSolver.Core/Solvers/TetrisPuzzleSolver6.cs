@@ -1,13 +1,17 @@
 using PuzzleSolver.Core.Primitives;
 using PuzzleSolver.Core.Permutations;
 using System.Diagnostics;
+using PuzzleSolver.Core.Abstract;
 
 namespace PuzzleSolver.Core.Solvers;
 
 public class TetrisPuzzleSolver6 : ITetrisPuzzleSolver
 {
-    public IEnumerable<Board> Solve(Board board, List<Brick> pool)
+    public SolveResult Solve(SolveArguments solveArguments)
     {
+        var board = solveArguments.Board;
+        var pool = solveArguments.Pool;
+        
         var boardPermutations = new PoolPermutations[board.Size.Y, board.Size.X];
 
         foreach (var boardPoint in board.GetAllPoints())
@@ -54,14 +58,21 @@ public class TetrisPuzzleSolver6 : ITetrisPuzzleSolver
 
         var stopwatch = Stopwatch.StartNew();
 
-        Req(board, 0, [.. pool]);
+        try
+        {
+            Req(board, 0, [.. pool]);
+        }
+        catch (ReqInterruptException)
+        {
+            Console.WriteLine("Поиск решений прерван.");
+        }
 
         stopwatch.Stop();
 
         Console.WriteLine($"Все решения: {solved.Count}");
         Console.WriteLine($"Итераций: {steps}");
 
-        return solved;
+        return new SolveResult(solved, (int)steps);
 
         void Req(Board board, int pointIndex, List<Brick> remainingBricks)
         {
@@ -76,6 +87,11 @@ public class TetrisPuzzleSolver6 : ITetrisPuzzleSolver
                 if (board.IsFilled())
                 {
                     solved.Add(board);
+
+                    if (solved.Count >= 50)
+                    {
+                        throw new ReqInterruptException("Найдено более 50 решений.");
+                    }
                 }
                 return;
             }

@@ -1,6 +1,6 @@
 ﻿using PuzzleSolver.Core.Primitives;
 
-namespace PuzzleSolver.Core;
+namespace PuzzleSolver.Core.Permutations;
 
 public class PermutationMaskGenerator
 {
@@ -49,7 +49,7 @@ public class PermutationMaskGenerator
                 if (x >= 0 && x < 10 && y >= 0 && y < 10)
                 {
                     // Устанавливаем бит, соответствующий текущему Brick
-                    permutationsMask[y, x] |= (1 << brickIndex);
+                    permutationsMask[y, x] |= 1 << brickIndex;
                 }
             }
         }
@@ -74,7 +74,7 @@ public class PermutationMaskGenerator
             // Проверяем каждый бит в маске
             for (int i = 0; i <= maxBrickIndex; i++)
             {
-                if ((mask & (1 << i)) != 0 && i < bricks.Count)
+                if ((mask & 1 << i) != 0 && i < bricks.Count)
                 {
                     result.Add(bricks[i]); // Добавляем объект Brick, если соответствующий бит установлен
                 }

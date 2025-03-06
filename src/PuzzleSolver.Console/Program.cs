@@ -1,4 +1,5 @@
-﻿using PuzzleSolver.Core.Primitives;
+﻿using PuzzleSolver.Core.Abstract;
+using PuzzleSolver.Core.Primitives;
 using PuzzleSolver.Core.Solvers;
 using System.Diagnostics;
 
