@@ -99,6 +99,15 @@ public class Board
         }
     }
 
+    public void UnsafeRemove(Brick brick)
+    {
+        FilledCount -= brick.Points.Length;
+        foreach (var point in brick.Points)
+        {
+            this[point] = null;
+        }
+    }
+
     public override bool Equals(object obj)
     {
         return Equals(obj as Board);
@@ -122,44 +131,24 @@ public class Board
         return true;
     }
 
-    int? cachedHashCode = null;
-
     public override int GetHashCode()
     {
-        return PrintBoardForHashCode(this).GetHashCode();
-    }
+        var hash = new HashCode();
+        // Incorporate board size and filled count.
+        hash.Add(Size);
+        hash.Add(FilledCount);
 
-    static string PrintBoardForHashCode(Board board)
-    {
-        var stringBuilder = new StringBuilder();
-
-        var exists = new Dictionary<Brick, char>();
-        var currentChar = 'a';
-
-        for (var y = 0; y < board.Size.Y; y++)
+        // Iterate in row-major order.
+        for (int y = 0; y < Size.Y; y++)
         {
-            for (var x = 0; x < board.Size.X; x++)
+            for (int x = 0; x < Size.X; x++)
             {
-                if (board.Field[y, x] is not null)
-                {
-                    var brick = board.Field[y, x];
-                    if (!exists.TryGetValue(brick, out char value))
-                    {
-                        exists[brick] = ++currentChar;
-                    }
-                    stringBuilder.Append(value);
-
-                }
-                else
-                {
-                    stringBuilder.Append(' ');
-                }
+                // Include Brick hash, using 0 for null.
+                hash.Add(this[new Point(x, y)]?.GetHashCode() ?? 0);
             }
-
-            stringBuilder.AppendLine();
         }
 
-        return stringBuilder.ToString();
+        return hash.ToHashCode();
     }
 
     static string PrintBoard(Board board)

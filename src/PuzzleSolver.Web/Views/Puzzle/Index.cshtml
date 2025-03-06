@@ -194,46 +194,37 @@
         const ctx = canvas.getContext('2d');
         const width = board.Width;
         const height = board.Height;
+
+        // Устанавливаем максимальный размер для одной стороны
+        const maxSize = 250;
+        const padding = 10;
         
-        // Устанавливаем размер canvas в зависимости от размера контейнера
-        const containerWidth = canvas.parentElement.offsetWidth;
-        const maxSize = Math.min(250, containerWidth - 20); // Уменьшим максимальный размер
+        // Вычисляем размер одной клетки, учитывая отступы
+        const cellSize = Math.floor((maxSize - (padding * 2)) / Math.max(width, height));
         
-        // Вычисляем размеры с учетом пропорций доски
-        let canvasWidth, canvasHeight;
-        if (width > height) {
-            canvasWidth = maxSize;
-            canvasHeight = (maxSize * height) / width;
-        } else {
-            canvasHeight = maxSize;
-            canvasWidth = (maxSize * width) / height;
-        }
-        
+        // Вычисляем размеры canvas
+        const canvasWidth = (cellSize * width) + (padding * 2);
+        const canvasHeight = (cellSize * height) + (padding * 2);
+
+        // Устанавливаем размеры canvas
         canvas.width = canvasWidth;
         canvas.height = canvasHeight;
-        
-        // Вычисляем размер ячейки
-        const padding = 20;
-        const availableWidth = canvas.width - (padding * 2);
-        const availableHeight = canvas.height - (padding * 2);
-        const cellSize = Math.min(
-            Math.floor(availableWidth / width),
-            Math.floor(availableHeight / height)
-        );
-        
+        canvas.style.width = `${canvasWidth}px`;
+        canvas.style.height = `${canvasHeight}px`;
+
         // Вычисляем отступы для центрирования
-        const offsetX = Math.floor((canvas.width - (cellSize * width)) / 2);
-        const offsetY = Math.floor((canvas.height - (cellSize * height)) / 2);
-        
+        const offsetX = padding;
+        const offsetY = padding;
+
         // Очищаем canvas
         ctx.fillStyle = '#f8f9fa';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
+
         // Рисуем внешнюю сетку
         ctx.strokeStyle = '#dee2e6';
         ctx.lineWidth = 1;
-        
-        // Рисуем горизонтальные линии
+
+        // Горизонтальные линии
         for (let y = 0; y <= height; y++) {
             const py = offsetY + y * cellSize;
             ctx.beginPath();
@@ -241,8 +232,8 @@
             ctx.lineTo(offsetX + width * cellSize, py);
             ctx.stroke();
         }
-        
-        // Рисуем вертикальные линии
+
+        // Вертикальные линии
         for (let x = 0; x <= width; x++) {
             const px = offsetX + x * cellSize;
             ctx.beginPath();
@@ -250,7 +241,7 @@
             ctx.lineTo(px, offsetY + height * cellSize);
             ctx.stroke();
         }
-        
+
         // Создаем карту ячеек для быстрого поиска
         const cellMap = {};
         if (Array.isArray(board.Cells)) {
@@ -258,55 +249,54 @@
                 cellMap[`${cell.X},${cell.Y}`] = cell;
             });
         }
-        
+
         // Функция проверки границы
         function shouldDrawBorder(x, y, dx, dy) {
             const cell = cellMap[`${x},${y}`];
             const neighbor = cellMap[`${x + dx},${y + dy}`];
             return !neighbor || cell.BrickId !== neighbor.BrickId;
         }
-        
+
         // Рисуем фигуры
         if (Array.isArray(board.Cells)) {
-            // Сначала рисуем заливку
+            // Заливка ячеек
             board.Cells.forEach(cell => {
                 ctx.fillStyle = cell.Color;
                 const px = offsetX + (cell.X * cellSize);
                 const py = offsetY + (cell.Y * cellSize);
                 ctx.fillRect(px, py, cellSize, cellSize);
             });
-            
-            // Затем рисуем границы
+
+            // Рисуем границы ячеек
             board.Cells.forEach(cell => {
                 const px = offsetX + (cell.X * cellSize);
                 const py = offsetY + (cell.Y * cellSize);
-                
-                // Проверяем все четыре стороны
+
                 ctx.beginPath();
                 ctx.strokeStyle = '#000';
                 ctx.lineWidth = 3;
-                
+
                 // Верхняя граница
                 if (shouldDrawBorder(cell.X, cell.Y, 0, -1)) {
                     ctx.moveTo(px, py);
                     ctx.lineTo(px + cellSize, py);
                     ctx.stroke();
                 }
-                
+
                 // Правая граница
                 if (shouldDrawBorder(cell.X, cell.Y, 1, 0)) {
                     ctx.moveTo(px + cellSize, py);
                     ctx.lineTo(px + cellSize, py + cellSize);
                     ctx.stroke();
                 }
-                
+
                 // Нижняя граница
                 if (shouldDrawBorder(cell.X, cell.Y, 0, 1)) {
                     ctx.moveTo(px, py + cellSize);
                     ctx.lineTo(px + cellSize, py + cellSize);
                     ctx.stroke();
                 }
-                
+
                 // Левая граница
                 if (shouldDrawBorder(cell.X, cell.Y, -1, 0)) {
                     ctx.moveTo(px, py);

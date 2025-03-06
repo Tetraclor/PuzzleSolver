@@ -22,7 +22,7 @@ internal class Program
 
        // pool = [TetrisPuzzle.BrickRoof, TetrisPuzzle.BrickRoof, TetrisPuzzle.BrickLine, TetrisPuzzle.BrickL];
 
-        var tetrisSolver6 = new TetrisPuzzleSolver6();
+        var tetrisSolver6 = new TetrisPuzzleSolver8();
 
         var solvers = new List<ITetrisPuzzleSolver>() 
         {
@@ -47,7 +47,7 @@ internal class Program
 
                 Console.WriteLine($"Решений найдено: {list.Count}");
 
-                //foreach (var solve in result.Boards)
+                //foreach (var solve in list)
                 //{
                 //    Console.WriteLine(solve);
                 //}

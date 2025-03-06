@@ -69,12 +69,6 @@ public class TetrisPuzzleSolver7 : ITetrisPuzzleSolver
 
     private IEnumerable<Board> FindSolutions(SolverState state)
     {
-        if (++state.Steps % 5_000_000 == 0)
-        {
-            Console.WriteLine($"{state.Stopwatch.Elapsed}. Итераций: {state.Steps}. {state.Steps / state.Stopwatch.Elapsed.TotalSeconds} в сек.");
-            Console.WriteLine(state.Board);
-        }
-
         if (state.PointIndex == state.AllPoints.Length)
         {
             if (state.Board.IsFilled())
@@ -83,9 +77,9 @@ public class TetrisPuzzleSolver7 : ITetrisPuzzleSolver
                 {
                     yield break;
                 }
-                Solved.Add(state.Board);
-                Console.WriteLine($"Найдено решений: {Solved.Count}");
-                yield return state.Board;
+                var copyBoard = state.Board.Copy();
+                Solved.Add(copyBoard);
+                yield return copyBoard;
             }
             yield break;
         }
@@ -112,19 +106,15 @@ public class TetrisPuzzleSolver7 : ITetrisPuzzleSolver
                 continue;
             }
 
-            var copyBoard = state.Board.Copy();
-            copyBoard.UnsafePlace(permut);
+            state.Board.UnsafePlace(permut);
 
             var placed = state.RemainingBricks.First(v => v.IsSameShape(permut));
-            var copyRemainingBricks = state.RemainingBricks.ToList();
-            copyRemainingBricks.Remove(placed);
+            state.RemainingBricks.Remove(placed);
 
-            // Можно избавиться от копирования доски, если перед итерацией вставлять.
-            // state.PointIndex++;
             var nextState = new SolverState(
-                copyBoard,
+                state.Board,
                 state.PointIndex + 1,
-                copyRemainingBricks,
+                state.RemainingBricks,
                 state.Steps,
                 state.Stopwatch,
                 state.BoardPermutations,
@@ -136,8 +126,8 @@ public class TetrisPuzzleSolver7 : ITetrisPuzzleSolver
                 yield return solution;
             }
 
-            // А после итерации удалять фигуру из доски.
-            // state.PointIndex--;
+            state.Board.UnsafeRemove(permut);
+            state.RemainingBricks.Add(placed);
         }
     }
 } 
