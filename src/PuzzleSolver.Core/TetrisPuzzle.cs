@@ -40,13 +40,50 @@ public class TetrisPuzzle
 ***
 ");
 
-    // TODO   .
+    /// <summary>
+    /// **
+    /// **
+    /// </summary>
+    public readonly static Brick BrickSquare = CreateBrickFromString("Square", @"
+**
+**
+");
+
+    /// <summary>
+    /// **
+    /// </summary>
+    public readonly static Brick BrickSmall = CreateBrickFromString("Small", @"
+**
+");
+
+    /// <summary>
+    /// *
+    /// **
+    /// </summary>
+    public readonly static Brick BrickHook = CreateBrickFromString("Hook", @"
+*
+**
+");
+
+    /// <summary>
+    /// * *
+    /// ***
+    /// </summary>
+    public readonly static Brick BrickCrown = CreateBrickFromString("Crown", @"
+* *
+***
+");
 
     static TetrisPuzzle()
     {
         AllBrickTypes.Add(BrickLadder);
         AllBrickTypes.Add(BrickLine);
         AllBrickTypes.Add(BrickRoof);
+        AllBrickTypes.Add(BrickL);
+        AllBrickTypes.Add(BrickSquare);
+        AllBrickTypes.Add(BrickSmall);
+        AllBrickTypes.Add(BrickHook);
+        AllBrickTypes.Add(BrickCrown);
 
         foreach (var brick in AllBrickTypes)
         {

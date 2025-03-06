@@ -7,8 +7,12 @@ namespace PuzzleSolver.Core.Solvers;
 
 public class TetrisPuzzleSolver7 : ITetrisPuzzleSolver
 {
+    HashSet<Board> Solved = [];
+
     public SolveResult Solve(SolveArguments solveArguments)
     {
+        Solved = [];
+
         var board = solveArguments.Board;
         var pool = solveArguments.Pool;
         
@@ -75,6 +79,12 @@ public class TetrisPuzzleSolver7 : ITetrisPuzzleSolver
         {
             if (state.Board.IsFilled())
             {
+                if (Solved.Contains(state.Board))
+                {
+                    yield break;
+                }
+                Solved.Add(state.Board);
+                Console.WriteLine($"Найдено решений: {Solved.Count}");
                 yield return state.Board;
             }
             yield break;

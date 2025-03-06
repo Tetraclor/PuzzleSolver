@@ -88,10 +88,10 @@ public class TetrisPuzzleSolver6 : ITetrisPuzzleSolver
                 {
                     solved.Add(board);
 
-                    if (solved.Count >= 50)
-                    {
-                        throw new ReqInterruptException("Найдено более 50 решений.");
-                    }
+                    //if (solved.Count >= 50)
+                    //{
+                    //    throw new ReqInterruptException("Найдено более 50 решений.");
+                    //}
                 }
                 return;
             }

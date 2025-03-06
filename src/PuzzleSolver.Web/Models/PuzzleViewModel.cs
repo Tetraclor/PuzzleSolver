@@ -4,6 +4,22 @@ using System.Collections.Generic;
 
 namespace PuzzleSolver.Web.Models
 {
+    public static class BrickColors
+    {
+        public static string GetColor(string type) => type switch
+        {
+            "Ladder" => "#ff0000",    // ярко-красный (зигзаг)
+            "Line" => "#333333",      // светло-черный (длинная линия)
+            "Roof" => "#ffd700",      // желтый (T-образная)
+            "L" => "#00bfff",         // голубой (L-образная)
+            "Square" => "#228b22",    // зеленый (квадрат)
+            "Small" => "#d3d3d3",     // светло-серый (маленькая линия)
+            "Hook" => "#800080",      // фиолетовый (крюк)
+            "Crown" => "#ffa500",     // оранжевый (корона)
+            _ => "#6c757d"
+        };
+    }
+
     public class BrickInput
     {
         public string Type { get; set; } = string.Empty;
@@ -11,14 +27,7 @@ namespace PuzzleSolver.Web.Models
         public string Shape { get; set; } = string.Empty;
         public int Count { get; set; }
 
-        public string GetColor() => Type switch
-        {
-            "Ladder" => "#0d6efd",
-            "Line" => "#198754",
-            "Roof" => "#dc3545",
-            "L" => "#ffc107",
-            _ => "#6c757d"
-        };
+        public string GetColor() => BrickColors.GetColor(Type);
     }
 
     public class PuzzleViewModel
@@ -35,10 +44,14 @@ namespace PuzzleSolver.Web.Models
 
         public List<BrickInput> Bricks { get; set; } = new()
         {
-            new BrickInput { Type = "Ladder", DisplayName = "Лестница", Shape = "**\n **", Count = 0 },
-            new BrickInput { Type = "Line", DisplayName = "Линия", Shape = "****", Count = 2 },
-            new BrickInput { Type = "Roof", DisplayName = "Крыша", Shape = "***\n *", Count = 0 },
-            new BrickInput { Type = "L", DisplayName = "L-фигура", Shape = "*\n***", Count = 2 }
+            new BrickInput { Type = "Ladder", DisplayName = "Зигзаг", Shape = "**\n **", Count = 0 },
+            new BrickInput { Type = "Line", DisplayName = "Линия", Shape = "****", Count = 0 },
+            new BrickInput { Type = "Roof", DisplayName = "T-образная", Shape = " *\n***", Count = 0 },
+            new BrickInput { Type = "L", DisplayName = "L-фигура", Shape = "*\n***", Count = 0 },
+            new BrickInput { Type = "Square", DisplayName = "Квадрат", Shape = "**\n**", Count = 0 },
+            new BrickInput { Type = "Small", DisplayName = "Малая линия", Shape = "**", Count = 0 },
+            new BrickInput { Type = "Hook", DisplayName = "Крюк", Shape = "*\n**", Count = 0 },
+            new BrickInput { Type = "Crown", DisplayName = "Корона", Shape = "* *\n***", Count = 0 }
         };
 
         [Display(Name = "Результат")]

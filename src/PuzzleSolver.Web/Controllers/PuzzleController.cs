@@ -50,6 +50,10 @@ namespace PuzzleSolver.Web.Controllers
                         "Line" => TetrisPuzzle.BrickLine,
                         "Roof" => TetrisPuzzle.BrickRoof,
                         "L" => TetrisPuzzle.BrickL,
+                        "Square" => TetrisPuzzle.BrickSquare,
+                        "Small" => TetrisPuzzle.BrickSmall,
+                        "Hook" => TetrisPuzzle.BrickHook,
+                        "Crown" => TetrisPuzzle.BrickCrown,
                         _ => throw new ArgumentException($"Неизвестный тип фигуры: {brickInput.Type}")
                     };
 
@@ -81,7 +85,7 @@ namespace PuzzleSolver.Web.Controllers
                 }
                 
                 var result = _puzzleSolver.Solve(new SolveArguments(board, bricks));
-                var boards = result.Boards.ToList();
+                var boards = result.Boards.Take(50).ToList();
 
                 if (boards.Count == 0)
                 {
@@ -148,15 +152,7 @@ namespace PuzzleSolver.Web.Controllers
                             if (brick != null && !processedCells.Contains($"{x},{y}"))
                             {
                                 brickId++;
-                                var color = brick.Type switch
-                                {
-                                    "Ladder" => "#0d6efd",
-                                    "Line" => "#198754",
-                                    "Roof" => "#dc3545",
-                                    "L" => "#ffc107",
-                                    _ => "#6c757d"
-                                };
-                                
+                                var color = BrickColors.GetColor(brick.Type);
                                 FillBrickCells(point, brick, brickId, color);
                             }
                         }
@@ -171,4 +167,4 @@ namespace PuzzleSolver.Web.Controllers
             }
         }
     }
-} 
+}

@@ -9,7 +9,7 @@ internal class Program
 {
     static void Main(string[] args)
     {
-        var board = new Board(new Point(4, 4));
+        var board = new Board(new Point(12, 12));
 
         var pool = new List<Brick>() { };
 
@@ -20,7 +20,7 @@ internal class Program
             pool.Add(TetrisPuzzle.BrickRoof);
         }
 
-        pool = [TetrisPuzzle.BrickRoof, TetrisPuzzle.BrickRoof, TetrisPuzzle.BrickLine, TetrisPuzzle.BrickL];
+       // pool = [TetrisPuzzle.BrickRoof, TetrisPuzzle.BrickRoof, TetrisPuzzle.BrickLine, TetrisPuzzle.BrickL];
 
         var tetrisSolver6 = new TetrisPuzzleSolver6();
 
@@ -41,12 +41,16 @@ internal class Program
             {
                 Console.WriteLine($"======= {board.Size.X} X {board.Size.Y} =======");
 
-                var result = solver.Solve(board, pool).ToList();
+                var result = solver.Solve(new SolveArguments(board, pool));
 
-                foreach (var solve in result)
-                {
-                    Console.WriteLine(solve);
-                }
+                var list = result.Boards.ToList();
+
+                Console.WriteLine($"Решений найдено: {list.Count}");
+
+                //foreach (var solve in result.Boards)
+                //{
+                //    Console.WriteLine(solve);
+                //}
             });
 
 

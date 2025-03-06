@@ -5,7 +5,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
-builder.Services.AddScoped<ITetrisPuzzleSolver, TetrisPuzzleSolver6>();
+builder.Services.AddScoped<ITetrisPuzzleSolver, TetrisPuzzleSolver7>();
 
 var app = builder.Build();
 
